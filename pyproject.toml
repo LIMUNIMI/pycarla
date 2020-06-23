@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "jack_synth"
+version = "0.1.0"
+description = "Use Carla and Jack to synthesize with realtime abilities in Python"
+authors = ["Federico Simonetta <federico.simonetta@unimi.it>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+jack-client = "^0.5.2"
+pretty_midi = "^0.2.9"
+numpy = "^1.19.0"
+pysoundfile = "^0.9.0"
+
+[tool.poetry.dev-dependencies]
+essentia = "^2.1b6.dev184"
+ipdb = "^0.13.2"
+ipython = "^7.15.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

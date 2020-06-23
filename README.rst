@@ -60,9 +60,11 @@ TODO
 ----
 
 #. Create installation scripts to:
+  
    #. optionally download Jack, Carla, jack-smf-player and jack_capture
    #. setup carla configuration file
    #. setup path to the binaries
+
 #. Support LADISH sessions for automatically starting LinuxSampler if needed
 
 Credits

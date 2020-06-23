@@ -1,5 +1,7 @@
-Note Separation
-===============
+PyJackSynth
+===========
+
+Use any kind of plugin to synthesize midi events!
 
 Basic Setup (development)
 -------------------------

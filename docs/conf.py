@@ -39,6 +39,9 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
+# mock modules that need unsatisfiable dependencies on readthedocs
+autodoc_mock_imports = ["soundfile"]
+
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for

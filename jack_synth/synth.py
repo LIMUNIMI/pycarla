@@ -172,6 +172,9 @@ PATH")
 
 
 def get_smf_duration(filename):
+    """
+    Return note dration of a file from a path
+    """
     return max([
         note.end for instrument in pm.PrettyMIDI(filename).instruments
         for note in instrument.notes

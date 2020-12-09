@@ -1,7 +1,8 @@
 jack_synth
 ==========
 
-Use any kind of plugin to synthesize midi events.
+A python module based on Linux commands for synthesizing MIDI events and files
+from python code with ultra time precision using any kind of audio plugin!
 
 A python module based on ``carla``, ``jack_capture``, ``jack-smf-utils``, and ``jack``, of course!
 

@@ -4,17 +4,19 @@ Usage
 Setup:
 
 .. code-block:: python
-   from jack_synth import Carla, MIDIPlayer, MIDIRecorder, JackServer, get_smf_duration
-    server = JackServer(['-R', '-d', 'alsa'])
-    carla = Carla("carla_project.carxp", server, min_wait=4)
-    carla.start()
 
-    player = MIDIPlayer()
-    recorder = MIDIRecorder()
+   from jack_synth import Carla, MIDIPlayer, MIDIRecorder, JackServer, get_smf_duration
+   server = JackServer(['-R', '-d', 'alsa'])
+   carla = Carla("carla_project.carxp", server, min_wait=4)
+   carla.start()
+
+   player = MIDIPlayer()
+   recorder = MIDIRecorder()
 
 Playing and recording one note:
 
 .. code-block:: python 
+
     print("Playing and recording one note..")
     duration = 2
     pitch = 64
@@ -31,6 +33,7 @@ Playing and recording one note:
 Playing and recording a full midi file:
 
 .. code-block:: python
+
     print("Playing and recording full file..")
     duration = get_smf_duration("filename.mid")
     recorder.start('session.wav', duration + FINAL_DECAY)
@@ -41,6 +44,7 @@ Playing and recording a full midi file:
 Closing server, processes and deleting recorded files:
 
 .. code-block:: python
+
     recorder.del_recorded()
     player.close()
     carla.kill()

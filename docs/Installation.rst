@@ -6,7 +6,7 @@ The backbone of this project are the multiple dependencies on which it depends. 
 #. Use Linux: it's free. For Windows and Mac, you can still install the
    dependencies by compiling both ``jack_capture`` and ``jack-smf-utils`` from
    scratch; however, I refuse to support non-free software.
-#. In general, use `https://pkgs.org`_ to llok for the command needed in your distro.
+#. In general, use https://pkgs.org to llok for the command needed in your distro.
 #. Install: ``jackd``, ``jack_capture``, ``jack-smf-utils``, ``carla``
 #. Make sure that they are available in your ``PATH`` environment variable
 

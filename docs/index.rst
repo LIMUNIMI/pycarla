@@ -10,9 +10,9 @@ A python module based on ``carla``, ``jack_capture``, ``jack-smf-utils``, and ``
    :maxdepth: 2
    :caption: Table of Contents
 
-    Installation
-    Examples
-    Classes
+   Installation
+   Examples
+   Classes
     
 Why so many external dependencies?
 ----------------------------------

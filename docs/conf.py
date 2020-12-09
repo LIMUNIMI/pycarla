@@ -40,7 +40,7 @@ extensions = [
 templates_path = ['_templates']
 
 # mock modules that need unsatisfiable dependencies on readthedocs
-autodoc_mock_imports = ["soundfile"]
+autodoc_mock_imports = ["soundfile", "jack", "essentia", "pretty_midi"]
 
 # -- Options for HTML output -------------------------------------------------
 

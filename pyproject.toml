@@ -1,9 +1,24 @@
 [tool.poetry]
 name = "jack_synth"
-version = "0.1.0"
-description = "Use Carla and Jack to synthesize with realtime abilities in Python"
+version = "0.1.0-1"
+description = "Use VST/LV2/etc. plugins with realtime abilities in Python"
 authors = ["Federico Simonetta <federico.simonetta@unimi.it>"]
-license = "MIT"
+license = "GPL-3.0-only"
+readme = "README.rst"
+homepage = "https://jacksynth.readthedocs.org"
+documentation = "https://jacksynth.readthedocs.org"
+repository = "https://gitlab.di.unimi.it/federicosimonetta/jack_synth/"
+classifiers = [
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Multimedia :: Sound/Audio :: MIDI",
+    "Intended Audience :: Science/Research",
+    "Topic :: Multimedia :: Sound/Audio :: Sound Synthesis",
+    "Topic :: Multimedia :: Sound/Audio :: Capture/Recording",
+    "Topic :: Multimedia :: Sound/Audio :: Players",
+    "Topic :: Multimedia :: Sound/Audio :: Mixers",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Other Audience"
+]
 
 [tool.poetry.dependencies]
 python = "^3.6"

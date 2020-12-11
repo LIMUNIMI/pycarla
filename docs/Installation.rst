@@ -4,10 +4,10 @@ Installation
 The backbone of this project are the multiple dependencies on which it depends. Since it's difficult to provide a script to automatically install all of these dependencies, here is a little handbook about how to install them.
 
 #. Use Linux: it's free. For Windows and Mac, you can still install the
-   dependencies by compiling both ``jack_capture`` and ``jack-smf-utils`` from
+   dependencies by compiling ``jack-smf-utils`` from
    scratch; however, I refuse to support non-free software.
 #. In general, use https://pkgs.org to llok for the command needed in your distro.
-#. Install: ``jackd``, ``jack_capture``, ``jack-smf-utils``, ``carla``
+#. Install: ``jackd``, ``jack-smf-utils``, ``carla``
 #. Make sure that they are available in your ``PATH`` environment variable
 
 TLDR
@@ -26,13 +26,6 @@ https://jackaudio.org/downloads/
 #. Arch based: ``sudo pacman -Sy jack2``
 #. Gentoo based: ``sudo emerge -a media-sound/jack2``
 #. Fedora based: ``sudo dnf install jack-audio-connection-kit``
-
-Installing jack_capture
-```````````````````````
-#. Ubuntu/Debian based: ``sudo apt-get install jack-capture``
-#. Arch based: ``sudo pacman -Sy jack_capture``
-#. Gentoo based: ``sudo emerge -a media-sound/jack_capture``
-#. Fedora based: ``sudo dnf install jack_capture``
 
 Installing jack-smf-utils
 `````````````````````````
@@ -79,5 +72,3 @@ Used plugins are:
 .. _SalamanderGrandPianoV3: http://freepats.zenvoid.org/Piano/SalamanderGrandPiano/SalamanderGrandPianoV3+20161209_48khz24bit.tar.xz
 
 #. Run ``poetry run -m jack_synth`` to do a little test
-
-

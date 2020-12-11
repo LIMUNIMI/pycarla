@@ -1,1 +1,1 @@
-from .synth import JackServer, MIDIRecorder, MIDIPlayer, Carla, get_smf_duration
+from .synth import JackServer, AudioRecorder, MIDIPlayer, Carla, get_smf_duration

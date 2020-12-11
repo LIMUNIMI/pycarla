@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-import threading
-import pretty_midi as pm
-import subprocess
-import soundfile as sf
-import shutil
-import os
-import jack
-import time
-import signal
 import fnmatch
+import os
+import shutil
+import signal
+import string
+import subprocess
+import threading
+import time
+
+import jack
+import pretty_midi as pm
+import sounddevice as sd
+import soundfile as sf
 
 MIDI_PORT = 'Carla:events-in'
-AUDIO_PORT = 'Carla:audio-out*'
+AUDIO_PORT = 'carla'
 
 
 def Popen(command, **args):
@@ -69,44 +72,65 @@ class JackServer(ExternalProcess):
         self.start()
 
 
-class MIDIRecorder(ExternalProcess):
-    def __init__(self):
+class AudioRecorder():
+    def __init__(self, channels=None, samplerate=None, dtype='float32'):
+        """
+
+        Uses ``sounddevice`` module, refer to it for more info about
+        parameters.
+
+        If `channels` and `samplerate` are not used, the maximum value usable
+        for Carla is used (samplerate is usually set by jack server...)
+        """
+        # make newer jack and carla instances visible to sounddevice and jack:
+        sd._exit_handler()
+        sd._initialize()
+
+        self.channels = channels
+        self.samplerate = samplerate
+
+        # get default values and params
+        devicelist = sd.query_devices()
+        for device in devicelist:
+            if AUDIO_PORT in device['name'].lower():
+                if not channels:
+                    self.channels = device['max_output_channels']
+                if not samplerate:
+                    self.samplerate = device['default_samplerate']
+
+        sd.default.device = AUDIO_PORT
+        self.dtype = dtype
         super().__init__()
-        self.filename = 'default_filename.mp3'
-        if shutil.which('jack_capture') is None:
-            raise RuntimeError(
-                "Dependencies not satisfied, install jack_capture in your PATH"
-            )
 
-    def start(self, filename, duration, final_decay=4):
+    def start(self, duration):
         """
-        Record audio in output to `filename`.mp3 for `duration` seconds.
+        Record audio for ``duration`` seconds. Note that this function returns
+        suddenly; call ``wait()`` for wating the end of the recording.
         """
-        self.process.wait()
-        self._duration = duration + final_decay
-        self._start = time.time()
-        self.filename = filename
-        mp3 = '--mp3'
-        if not filename.endswith('.mp3'):
-            mp3 = ''
-        self.process = subprocess.Popen([
-            'jack_capture', mp3, '--absolutely-silent', '--filename', filename,
-            '--port', AUDIO_PORT, '--recording-time',
-            str(self._duration)
-        ])
+        self.recorded = sd.rec((int(duration * self.samplerate)),
+                               channels=self.channels,
+                               samplerate=self.samplerate,
+                               dtype=self.dtype)
 
-    def get_recorded(self):
+    def rec(self, *args, **kwargs):
         """
-        Returns numpy data data and samplerate
+        Records and waits for the end of the recording
         """
-        if os.path.exists(self.filename):
-            return sf.read(self.filename)
-        else:
-            raise Exception(self.filename + "does not exists!")
+        self.start(*args, **kwargs)
+        self.wait()
 
-    def del_recorded(self):
-        if os.path.exists(self.filename):
-            os.remove(self.filename)
+    def wait(self):
+        sd.wait()
+
+    def save_recorded(self, filename):
+        """
+        Save the recorded array to file. Extensions supported by ``libsndfile``!
+        """
+
+        if not hasattr(self, 'recorded'):
+            raise RuntimeError("No recorded array!")
+
+        sf.write(filename, self.recorded, int(self.samplerate))
 
 
 class MIDIPlayer(ExternalProcess):
@@ -193,8 +217,7 @@ class Carla(ExternalProcess):
         self.min_wait = min_wait
         if shutil.which('carla') is None:
             raise RuntimeError(
-                "Dependencies not satisfied, install carla in your PATH"
-            )
+                "Dependencies not satisfied, install carla in your PATH")
 
     def restart_carla(self):
         """
@@ -222,8 +245,9 @@ class Carla(ExternalProcess):
 
         # starting Carla
         self.process = subprocess.Popen(
-            ["carla", "-n",
-             os.path.abspath(self.proj_path)],
+            # for me doesn't work, see bug issue
+            # ["carla", "-n", os.path.abspath(self.proj_path)],
+            ["carla", os.path.abspath(self.proj_path)],
             preexec_fn=os.setsid)
 
         # waiting
@@ -271,5 +295,3 @@ class Carla(ExternalProcess):
             return False
 
         return True
-
-

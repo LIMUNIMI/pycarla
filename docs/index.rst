@@ -46,9 +46,9 @@ virtual instruments thanks to the excellent Carla:
 TODO
 ----
 
+#. Use mido instead of jack-smf-player
 #. Create installation scripts to:
   
-   #. jack-smf-player
    #. setup carla configuration file
    #. setup path to the binaries
 

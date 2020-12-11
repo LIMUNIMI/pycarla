@@ -11,7 +11,7 @@ Setup:
    carla.start()
 
    player = MIDIPlayer()
-   recorder = MIDIRecorder()
+   recorder = AudioRecorder()
 
 Playing and recording one note:
 
@@ -20,11 +20,11 @@ Playing and recording one note:
     print("Playing and recording one note..")
     duration = 2
     pitch = 64
-    recorder.start('tmp.wav', duration + FINAL_DECAY)
+    recorder.start(duration + FINAL_DECAY)
     player.synthesize_midi_note(pitch, 64, duration, 0)
     player.wait()
     recorder.wait()
-    audio, sr = recorder.get_recorded()
+    audio = recorder.recorded
     if not np.any(audio):
         print("Error, no sample != 0")
         carla.kill()
@@ -36,16 +36,16 @@ Playing and recording a full midi file:
 
     print("Playing and recording full file..")
     duration = get_smf_duration("filename.mid")
-    recorder.start('session.wav', duration + FINAL_DECAY)
+    recorder.start(duration + FINAL_DECAY)
     player.synthesize_midi_file("filename.mid")
     player.wait()
     recorder.wait()
+    recorder.save_recorded("session.wav")
 
 Closing server, processes and deleting recorded files:
 
 .. code-block:: python
 
-    recorder.del_recorded()
     player.close()
     carla.kill()
 

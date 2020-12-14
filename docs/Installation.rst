@@ -3,18 +3,12 @@ Installation
 
 The backbone of this project are the multiple dependencies on which it depends. Since it's difficult to provide a script to automatically install all of these dependencies, here is a little handbook about how to install them.
 
-#. Use Linux: it's free. For Windows and Mac, you can still install the
-   dependencies by compiling ``jack-smf-utils`` from
-   scratch; however, I refuse to support non-free software.
-#. In general, use https://pkgs.org to llok for the command needed in your distro.
-#. Install: ``jackd``, ``carla``
-#. Make sure that they are available in your ``PATH`` environment variable
-
-TLDR
-````
-
-Use Arch, if you can, and install everything from the official repositories.
-Use pip to install the package: ``pip install jack_synth``
+#. Use Linux: it's free. For Windows and Mac, you can still install Carla and
+   Jack by yourself; however, I refuse to support non-free software.
+#. In general, use https://pkgs.org to look for the command needed in your
+   distro.
+#. Install: ``jackd``
+#. Make sure that it is available in your ``PATH`` environment variable
 
 Installing jack
 ```````````````
@@ -33,11 +27,10 @@ Installing Carla
 Pre-built binaries for major OS available at
 https://github.com/falkTX/Carla/releases/latest
 
-#. Ubuntu/Debian based: ``apt-get install carla``; for Debian, install `KXStudio
-   repositories: <https://kx.studio/Repositories>`_
-#. Arch based: ``sudo pacman -Sy cadence``
-#. Gentoo based: no package available
-#. Fedora based: ``dnf install carla``
+#. After having installed the package, run ``python -m pycarla.carla
+   --download`` to download the correct version of Carla.
+#. Prepare some Carla configuration using the installed Carla: ``python -m
+   pycarla.carla --run``
 
 **N.B. Configure Carla in ``patchbay`` mode (if you cannot use GUI, set ``ProcessMode=3`` into ``~/.config/falkTX/Carla2.conf``)**
 
@@ -59,4 +52,4 @@ Used plugins are:
 
 .. _SalamanderGrandPianoV3: http://freepats.zenvoid.org/Piano/SalamanderGrandPiano/SalamanderGrandPianoV3+20161209_48khz24bit.tar.xz
 
-#. Run ``poetry run -m jack_synth`` to do a little test
+#. Run ``poetry run -m pycarla`` to do a little test

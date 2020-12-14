@@ -1,7 +1,7 @@
 Classes and functions
 ---------------------
 
-.. automodule:: jack_synth.synth
+.. automodule:: pycarla.synth
    :members:
    :private-members:
    :undoc-members:

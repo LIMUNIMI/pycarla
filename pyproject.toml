@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "jack_synth"
-version = "0.1.0-1"
+name = "pycarla"
+version = "0.1.0"
 description = "Use VST/LV2/etc. plugins with realtime abilities in Python"
 authors = ["Federico Simonetta <federico.simonetta@unimi.it>"]
 license = "GPL-3.0-only"
 readme = "README.rst"
-homepage = "https://jacksynth.readthedocs.org"
-documentation = "https://jacksynth.readthedocs.org"
-repository = "https://gitlab.di.unimi.it/federicosimonetta/jack_synth/"
+homepage = "https://pycarla.readthedocs.org"
+documentation = "https://pycarla.readthedocs.org"
+repository = "https://gitlab.di.unimi.it/federicosimonetta/pycarla/"
 classifiers = [
     "Topic :: Multimedia :: Sound/Audio",
     "Topic :: Multimedia :: Sound/Audio :: MIDI",
@@ -31,7 +31,6 @@ mido = "^1.2.9"
 python-rtmidi = "^1.4.6"
 
 [tool.poetry.dev-dependencies]
-essentia = "^2.1b6.dev184"
 ipdb = "^0.13.2"
 ipython = "^7.15.0"
 

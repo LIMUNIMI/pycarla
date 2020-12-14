@@ -4,18 +4,26 @@ import multiprocessing
 import os
 import signal
 import subprocess
+import sys
 import threading
 import time
 
-import jack
 import mido
-import sounddevice as sd
 import soundfile as sf
+
+import jack
+import sounddevice as sd
 
 mido.set_backend('mido.backends.rtmidi/UNIX_JACK')
 
 THISDIR = os.path.dirname(os.path.realpath(__file__))
-CARLA_PATH = os.path.join(THISDIR, "carla/Carla")
+
+if sys.platform == 'linux':
+    # use our carla version
+    CARLA_PATH = os.path.join(THISDIR, "carla") + "/"
+else:
+    # use the system version
+    CARLA_PATH = ""
 
 
 def Popen(command, **args):
@@ -74,15 +82,27 @@ class JackServer(ExternalProcess):
 
 
 class Carla(ExternalProcess):
-    def __init__(self, proj_path, server, min_wait=0):
+    def __init__(self,
+                 proj_path: str,
+                 server: JackServer,
+                 min_wait: float = 0,
+                 nogui: bool = True):
         """
-        Creates a Carla object, ready to be started
+        Creates a Carla object, ready to be started.
+
+        `min_wait` is the minimum amount of seconds waited when starting Carla
+
+        `nogui` is False if you want to use the gui
         """
         super().__init__()
         # create Jack client to query Jack
         self.proj_path = proj_path
         self.server = server
         self.min_wait = min_wait
+        if nogui:
+            self.nogui = "-n"
+        else:
+            self.nogui = ""
 
     def restart_carla(self):
         """
@@ -110,10 +130,10 @@ class Carla(ExternalProcess):
         ports_before = self.client.get_ports()
 
         # starting Carla
-        self.process = subprocess.Popen(
-            [CARLA_PATH, "-n",
-             os.path.abspath(self.proj_path)],
-            # [CARLA_PATH, os.path.abspath(self.proj_path)],
+        self.process = subprocess.Popen([
+            CARLA_PATH + "Carla", self.nogui,
+            os.path.abspath(self.proj_path)
+        ],
             preexec_fn=os.setsid)
 
         # waiting
@@ -319,14 +339,13 @@ class MIDIPlayer():
                              channel=channel))
             time.sleep(duration)
             # note off
-            outport.send(
-                mido.Message('note_off',
-                             note=pitch,
-                             channel=channel))
+            outport.send(mido.Message('note_off', note=pitch, channel=channel))
 
-    def synthesize_midi_file(self, midifile: str or mido.MidiFile, sync=True):
+    def synthesize_midi_file(self, midifile, sync=True):
         """
         Send midi messages contained in `filename` to `self.port`
+
+        `midifile` can be a `mido.MifiFile` object or a string
 
         `self.port` is initialized during in the constructor of this object but
         if no Carla instance is found it is automatically updated when

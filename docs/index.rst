@@ -4,7 +4,7 @@ jack_synth
 A python module based on Linux commands for synthesizing MIDI events and files
 from python code with ultra time precision using any kind of audio plugin!
 
-A python module based on ``carla`` and ``jack``, of course!
+A python module based on ``carla`` and ``jack``!
 
 .. toctree::
    :maxdepth: 2

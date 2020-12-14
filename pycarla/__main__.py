@@ -24,7 +24,7 @@ recorder = AudioRecorder()
 
 # testing one note
 print("Playing and recording one note..")
-duration = 2
+duration = 1
 pitch = 64
 recorder.start(duration + FINAL_DECAY)
 player.synthesize_midi_note(pitch, 64, duration, 0)
@@ -47,7 +47,7 @@ print("Playing and recording full file..")
 midifile = mido.MidiFile(filename)
 duration = get_smf_duration(filename)
 recorder.start(duration + FINAL_DECAY)
-player.synthesize_midi_file(midifile)
+player.synthesize_midi_file(midifile, sync=False)
 player.wait()
 recorder.wait()
 recorder.save_recorded("session.wav")

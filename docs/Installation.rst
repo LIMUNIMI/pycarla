@@ -7,7 +7,7 @@ The backbone of this project are the multiple dependencies on which it depends. 
    dependencies by compiling ``jack-smf-utils`` from
    scratch; however, I refuse to support non-free software.
 #. In general, use https://pkgs.org to llok for the command needed in your distro.
-#. Install: ``jackd``, ``jack-smf-utils``, ``carla``
+#. Install: ``jackd``, ``carla``
 #. Make sure that they are available in your ``PATH`` environment variable
 
 TLDR
@@ -26,18 +26,6 @@ https://jackaudio.org/downloads/
 #. Arch based: ``sudo pacman -Sy jack2``
 #. Gentoo based: ``sudo emerge -a media-sound/jack2``
 #. Fedora based: ``sudo dnf install jack-audio-connection-kit``
-
-Installing jack-smf-utils
-`````````````````````````
-
-TODO: automated compilation and installation in local directory
-
-#. Ubuntu/Debian based: no package available, `download source
-   <https://github.com/zynthian/jack-smf-utils>`_ and compile
-#. Arch based: ``sudo pacman -Sy jack-smf-utils``
-#. Gentoo based: ``sudo emerge -a media-sound/jack-smf-utils``
-#. Fedora based: no package available, `download source
-   <https://github.com/zynthian/jack-smf-utils>`_ and compile
 
 Installing Carla
 ``````````````````

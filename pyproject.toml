@@ -27,6 +27,8 @@ numpy = "^1.19.0"
 pysoundfile = "^0.9.0"
 PyQt5 = "^5.15.2"
 sounddevice = "^0.4.1"
+mido = "^1.2.9"
+python-rtmidi = "^1.4.6"
 
 [tool.poetry.dev-dependencies]
 essentia = "^2.1b6.dev184"

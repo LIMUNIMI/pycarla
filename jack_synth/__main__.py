@@ -1,18 +1,18 @@
 """
 Simple test.
 
-Requires essentia, aplay, and  pretty_midi.
+Requires aplay
 Use with an argument consisting of the path to a MIDI file
 """
 import subprocess
-import numpy as np
-import pretty_midi as pm
-from .synth import Carla, MIDIPlayer, AudioRecorder, JackServer, get_smf_duration
-
 import sys
-import essentia.standard as esst
-import essentia as es
-SR = 22050
+
+import numpy as np
+import mido
+
+from .synth import (AudioRecorder, Carla, JackServer, MIDIPlayer,
+                    get_smf_duration)
+
 FINAL_DECAY = 4
 server = JackServer(['-R', '-d', 'alsa'])
 carla = Carla("carla_proj/pianoteq0.carxp", server, min_wait=4)
@@ -28,7 +28,6 @@ duration = 2
 pitch = 64
 recorder.start(duration + FINAL_DECAY)
 player.synthesize_midi_note(pitch, 64, duration, 0)
-player.wait()
 recorder.wait()
 audio = recorder.recorded
 if not np.any(audio):
@@ -37,17 +36,18 @@ if not np.any(audio):
     sys.exit()
 
 # computing pitch from audio
-print(f"Detecting pitch (correct one is {pitch})...")
-pitch, confidence = esst.PitchYin(sampleRate=recorder.samplerate)(es.array(
-    np.mean(audio, axis=1)))
-pitch = pm.hz_to_note_number(pitch)
-print(f"Detected pitch: {pitch}, {confidence}")
+# print(f"Detecting pitch (correct one is {pitch})...")
+# pitch, confidence = esst.PitchYin(sampleRate=recorder.samplerate)(es.array(
+#     np.mean(audio, axis=1)))
+# pitch = 69 + 12 * np.log2(pitch/440)
+# print(f"Detected pitch: {pitch}, {confidence}")
 
 # testing full midi file
 print("Playing and recording full file..")
+midifile = mido.MidiFile(filename)
 duration = get_smf_duration(filename)
 recorder.start(duration + FINAL_DECAY)
-player.synthesize_midi_file(filename)
+player.synthesize_midi_file(midifile)
 player.wait()
 recorder.wait()
 recorder.save_recorded("session.wav")
@@ -57,5 +57,4 @@ print("Playing recorded file")
 proc = subprocess.Popen(['aplay', 'session.wav'])
 proc.wait()
 
-player.close()
 carla.kill()

@@ -4,7 +4,7 @@ import sys
 from .synth import CARLA_PATH, Carla, JackServer
 
 
-def progress(count, block_size, total, status='Downloading...'):
+def progress(count, block_size, total, status='Download'):
     bar_len = 60
     count *= block_size
     filled_len = int(round(bar_len * count / float(total)))
@@ -19,7 +19,7 @@ def progress(count, block_size, total, status='Downloading...'):
 def download():
     import platform
     import tarfile
-    import urllib
+    import urllib.request
 
     if sys.platform == 'linux':
         # download carla
@@ -28,15 +28,18 @@ def download():
         target_url =\
             'https://github.com/falkTX/Carla/releases/download/v2.1/Carla_2.1-linux' + arch + '.tar.xz'
         try:
-            fname, header = urllib.request.urlretrieve(  # type: ignore
-                target_url, reporthook=progress)
+            fname, header = urllib.request.urlretrieve(target_url,
+                                                       reporthook=progress)
         except Exception as e:
             print("Error while downloading Carla!", file=sys.stderr)
             print(e, file=sys.stderr)
+        progress(10, 1, 10, status='Completed!')
+        print("\n")
 
         print("Extracting archive...")
         with tarfile.open(fname, "r:xz") as file:
             file.extractall(CARLA_PATH)
+        # TODO: move files from Carla_2.1-linux64 to its parent dir
     else:
         print(
             "I don't support closed software. You can still download Carla by yourself and put the `Carla` command in you command path"
@@ -75,4 +78,4 @@ if __name__ == "__main__":
         elif args.run:
             run_carla()
         else:
-            argparser.print_usage()
+            argparser.print_help()

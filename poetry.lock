@@ -42,19 +42,6 @@ optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*"
 
 [[package]]
-name = "essentia"
-version = "2.1b6.dev184"
-description = "Library for audio and music analysis, description and synthesis"
-category = "dev"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-numpy = ">=1.8.2"
-pyyaml = "*"
-six = "*"
-
-[[package]]
 name = "ipdb"
 version = "0.13.4"
 description = "IPython-enabled pdb"
@@ -260,14 +247,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "pyyaml"
-version = "5.3.1"
-description = "YAML parser and emitter for Python"
-category = "dev"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-
-[[package]]
 name = "six"
 version = "1.15.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -316,7 +295,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "47181e03054f33c73c2053aa92aead41303866ef66ef2afe8921a1a55c60b455"
+content-hash = "70095711459212361dc35cbde836aee833c0dc7faa6f128525b49919de33aca9"
 
 [metadata.files]
 appnope = [
@@ -369,21 +348,6 @@ colorama = [
 decorator = [
     {file = "decorator-4.4.2-py2.py3-none-any.whl", hash = "sha256:41fa54c2a0cc4ba648be4fd43cff00aedf5b9465c9bf18d64325bc225f08f760"},
     {file = "decorator-4.4.2.tar.gz", hash = "sha256:e3a62f0520172440ca0dcc823749319382e377f37f140a0b99ef45fecb84bfe7"},
-]
-essentia = [
-    {file = "essentia-2.1b6.dev184-cp27-cp27m-manylinux1_i686.whl", hash = "sha256:f8eced9f758e42d7f5020a4c63be0d328a16e026e56bb0c772318dfb32289cbd"},
-    {file = "essentia-2.1b6.dev184-cp27-cp27m-manylinux1_x86_64.whl", hash = "sha256:ccc7c3d1210955d6af32541042f7ca30f826a778c942238919b9e2523227adfe"},
-    {file = "essentia-2.1b6.dev184-cp27-cp27mu-manylinux1_i686.whl", hash = "sha256:60c60224501bff13a49b50312a262756df790983c6a1d51de0ed224b7a4261db"},
-    {file = "essentia-2.1b6.dev184-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:62f79cbf82d93c0ac69a13addd65aeb7b2af5c1bcd6273351536c4008c124f2b"},
-    {file = "essentia-2.1b6.dev184-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:dbdf5558fbaedc5f55520224eb7e1f48e8a3461eaa203f5446c02c2ca499de7c"},
-    {file = "essentia-2.1b6.dev184-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:157ba9d3be590f5bb59e9af279a918cf1dfd51473d3bf101f56e9b4fa39ad4d1"},
-    {file = "essentia-2.1b6.dev184-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:26ab4e84123fa0e47d9bc417ffd3305d00511e9b0728ea4c39fcdffc04f69dfb"},
-    {file = "essentia-2.1b6.dev184-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:3e254100149746a7ded3f137b3a4347a7ba38ae029f3f8904030fb55edd45778"},
-    {file = "essentia-2.1b6.dev184-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:c0a2c32a4dbc4b9ef85a6596d2d035a0b83d578770643ddafbf1db5b6c2b75c3"},
-    {file = "essentia-2.1b6.dev184-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:1b6d1ca0571d50b9be53cf67aea494f9ac0c2ab65f342cafa4dc906e95adb1b8"},
-    {file = "essentia-2.1b6.dev184-cp38-cp38-manylinux1_i686.whl", hash = "sha256:484649f0e195e347b2c9aa44e7f64d3a2d08992fb590226ba4c18dbb25637d19"},
-    {file = "essentia-2.1b6.dev184-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:90fed1d73cfb47092a0617b8474084ce0b6996a0574d6bd9e0fb1711408fd93f"},
-    {file = "essentia-2.1b6.dev184.tar.gz", hash = "sha256:30ff4b07282e33dc0b0a601e179b29d4a985d9d64450dad717365a3bc8aa1b53"},
 ]
 ipdb = [
     {file = "ipdb-0.13.4.tar.gz", hash = "sha256:c85398b5fb82f82399fc38c44fe3532c0dde1754abee727d8f5cfcc74547b334"},
@@ -522,19 +486,6 @@ python-rtmidi = [
     {file = "python_rtmidi-1.4.6-cp38-cp38-win32.whl", hash = "sha256:f992685ec4739a51a080069f35355b1769e47b7ed2351008014a6085a08f95f5"},
     {file = "python_rtmidi-1.4.6-cp38-cp38-win_amd64.whl", hash = "sha256:615eb4426a5df90275616aab8d6382185a7c6be2a09ce44c7f058c4493bdb635"},
     {file = "python_rtmidi-1.4.6-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:565da90d8e2fc00a7e6c608ea86427c4a2ce69db44adda4be71df95fffe3d262"},
-]
-pyyaml = [
-    {file = "PyYAML-5.3.1-cp27-cp27m-win32.whl", hash = "sha256:74809a57b329d6cc0fdccee6318f44b9b8649961fa73144a98735b0aaf029f1f"},
-    {file = "PyYAML-5.3.1-cp27-cp27m-win_amd64.whl", hash = "sha256:240097ff019d7c70a4922b6869d8a86407758333f02203e0fc6ff79c5dcede76"},
-    {file = "PyYAML-5.3.1-cp35-cp35m-win32.whl", hash = "sha256:4f4b913ca1a7319b33cfb1369e91e50354d6f07a135f3b901aca02aa95940bd2"},
-    {file = "PyYAML-5.3.1-cp35-cp35m-win_amd64.whl", hash = "sha256:cc8955cfbfc7a115fa81d85284ee61147059a753344bc51098f3ccd69b0d7e0c"},
-    {file = "PyYAML-5.3.1-cp36-cp36m-win32.whl", hash = "sha256:7739fc0fa8205b3ee8808aea45e968bc90082c10aef6ea95e855e10abf4a37b2"},
-    {file = "PyYAML-5.3.1-cp36-cp36m-win_amd64.whl", hash = "sha256:69f00dca373f240f842b2931fb2c7e14ddbacd1397d57157a9b005a6a9942648"},
-    {file = "PyYAML-5.3.1-cp37-cp37m-win32.whl", hash = "sha256:d13155f591e6fcc1ec3b30685d50bf0711574e2c0dfffd7644babf8b5102ca1a"},
-    {file = "PyYAML-5.3.1-cp37-cp37m-win_amd64.whl", hash = "sha256:73f099454b799e05e5ab51423c7bcf361c58d3206fa7b0d555426b1f4d9a3eaf"},
-    {file = "PyYAML-5.3.1-cp38-cp38-win32.whl", hash = "sha256:06a0d7ba600ce0b2d2fe2e78453a470b5a6e000a985dd4a4e54e436cc36b0e97"},
-    {file = "PyYAML-5.3.1-cp38-cp38-win_amd64.whl", hash = "sha256:95f71d2af0ff4227885f7a6605c37fd53d3a106fcab511b8860ecca9fcf400ee"},
-    {file = "PyYAML-5.3.1.tar.gz", hash = "sha256:b8eac752c5e14d3eca0e6dd9199cd627518cb5ec06add0de9d32baeee6fe645d"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},

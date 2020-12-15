@@ -27,6 +27,9 @@ else:
 
 
 def Popen(command, **args):
+    """
+    Custom call to ``subprocess.Popen``
+    """
     return subprocess.Popen(command,
                             stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL,
@@ -104,6 +107,11 @@ class Carla(ExternalProcess):
         else:
             self.nogui = ""
 
+        if not os.path.exists(CARLA_PATH):
+            raise Warning(
+                "Carla seems not to be installed. If you're on Linux, you can\
+run ``python -m pycarla.carla -d`` to install it!")
+
     def restart_carla(self):
         """
         Only restarts Carla, not the Jack server!
@@ -156,12 +164,18 @@ class Carla(ExternalProcess):
             ports_after = self.client.get_ports()
 
     def kill_carla(self):
+        """
+        kill carla, but not the server
+        """
         self.client.close()
         os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
 
     def kill(self):
-        self.server.wait()
+        """
+        kill carla and wait for the server
+        """
         self.kill_carla()
+        self.server.wait()
 
     def exists(self, ports=["Carla:events-in", "Carla:audio*"]):
         """

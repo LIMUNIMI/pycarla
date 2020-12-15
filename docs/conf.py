@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'jack_synth'
+project = 'pyCarla'
 copyright = '2020, Federico Simonetta'
 author = 'Federico Simonetta'
 
@@ -30,9 +30,7 @@ release = '0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.napoleon',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.napoleon', 'sphinx.ext.autodoc', 'sphinx.ext.viewcode'
 ]
 # autodoc_docstring_signature = False
 
@@ -40,7 +38,9 @@ extensions = [
 templates_path = ['_templates']
 
 # mock modules that need unsatisfiable dependencies on readthedocs
-autodoc_mock_imports = ["soundfile", "jack", "essentia", "pretty_midi"]
+autodoc_mock_imports = [
+    "soundfile", "jack", "essentia", "mido", "python-rtmidi", "sounddevice"
+]
 
 # -- Options for HTML output -------------------------------------------------
 

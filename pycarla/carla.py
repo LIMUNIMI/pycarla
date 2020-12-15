@@ -3,6 +3,8 @@ import sys
 
 from .synth import CARLA_PATH, Carla, JackServer
 
+version = "2.1"
+
 
 def progress(count, block_size, total, status='Download'):
     bar_len = 60
@@ -20,13 +22,17 @@ def download():
     import platform
     import tarfile
     import urllib.request
+    import shutil
+    import random
 
     if sys.platform == 'linux':
         # download carla
         print("Downloading...")
         arch = platform.architecture()[0][:2]
         target_url =\
-            'https://github.com/falkTX/Carla/releases/download/v2.1/Carla_2.1-linux' + arch + '.tar.xz'
+            'https://github.com/falkTX/Carla/releases/download/v' + \
+            version + '/Carla_' + version + '-linux' +\
+            arch + '.tar.xz'
         try:
             fname, header = urllib.request.urlretrieve(target_url,
                                                        reporthook=progress)
@@ -37,13 +43,18 @@ def download():
         print("\n")
 
         print("Extracting archive...")
+        rand = str(random.randint(10**4, 10**5))
+        tmp_path = "/tmp/carla" + "-" + rand
         with tarfile.open(fname, "r:xz") as file:
-            file.extractall(CARLA_PATH)
-        # TODO: move files from Carla_2.1-linux64 to its parent dir
+            file.extractall(tmp_path)
+
+        shutil.move(tmp_path + "/Carla_" + version + "-linux" + arch,
+                    CARLA_PATH)
     else:
         print(
-            "I don't support closed software. You can still download Carla by yourself and put the `Carla` command in you command path"
-        )
+            "Your OS is against the freedom of software developers because its\
+sources are closed. I don't support closed software. You can still download\
+Carla by yourself and put the `Carla` command in your path.")
 
 
 def run_carla():
@@ -51,7 +62,10 @@ def run_carla():
     carla = Carla("", server, min_wait=0, nogui=False)
     carla.start()
     carla.process.wait()
-    carla.kill()
+    try:
+        carla.kill()
+    except:
+        print("Processes already closed!")
 
 
 argparser = argparse.ArgumentParser(
@@ -60,8 +74,8 @@ argparser.add_argument(
     "-d",
     "--download",
     action="store_true",
-    help="Download the correct Carla version in the installation directory of this python package."
-)
+    help="Download the correct Carla version in the installation directory of\
+this python package.")
 
 argparser.add_argument("-r",
                        "--run",

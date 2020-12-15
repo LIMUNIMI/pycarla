@@ -1,7 +1,14 @@
 Usage
 -----
 
-Setup:
+Carla presets
+`````````````
+
+#. **Configure Carla in ``patchbay`` mode (if you cannot use GUI, set ``ProcessMode=3`` into ``~/.config/falkTX/Carla2.conf``)**
+#. ``python -m pycarla.carla --run`` to launch Carla and prepare configurations
+
+Initialization
+``````````````
 
 .. code-block:: python
 
@@ -13,9 +20,10 @@ Setup:
    player = MIDIPlayer()
    recorder = AudioRecorder()
 
-Playing and recording one note:
+Playing and recording one note
+``````````````````````````````
 
-.. code-block:: python 
+.. code-block:: python
 
     print("Playing and recording one note..")
     duration = 2
@@ -29,7 +37,8 @@ Playing and recording one note:
         carla.kill()
         sys.exit()
 
-Playing and recording a full midi file:
+Playing and recording a full MIDI file
+``````````````````````````````````````
 
 .. code-block:: python
 
@@ -37,14 +46,19 @@ Playing and recording a full midi file:
     duration = get_smf_duration("filename.mid")
     recorder.start(duration + FINAL_DECAY)
     player.synthesize_midi_file("filename.mid")
-    # or asynchronously: player.synthesize_midi_file("filename.mid, sync=False)
-    # in this case, use player.wait()
+    # or asynchronously:
+    # player.synthesize_midi_file("filename.mid", sync=False)
+    # in this case, use
+    # player.wait()
     recorder.wait()
     recorder.save_recorded("session.wav")
 
-Closing server:
+Closing server
+``````````````
 
 .. code-block:: python
 
-    carla.kill()
-
+    try:
+        carla.kill()
+    except Exception as e:
+        print("Processes already closed!")

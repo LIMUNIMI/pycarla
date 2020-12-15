@@ -10,27 +10,30 @@ The backbone of this project are the multiple dependencies on which it depends. 
 #. Install: ``jackd``
 #. Make sure that it is available in your ``PATH`` environment variable
 
+Installing pycarla
+``````````````````
+
+``pip install --upgrade pip pycarla``
+
 Installing jack
 ```````````````
-
-Pre-built binaries for major OS available at
-https://jackaudio.org/downloads/
 
 #. Ubuntu/Debian based: ``sudo apt-get install jackd2``
 #. Arch based: ``sudo pacman -Sy jack2``
 #. Gentoo based: ``sudo emerge -a media-sound/jack2``
 #. Fedora based: ``sudo dnf install jack-audio-connection-kit``
 
+For other Os, pre-built binaries are available at
+https://jackaudio.org/downloads/
+
 Installing Carla
 ``````````````````
 
-Pre-built binaries for major OS available at
-https://github.com/falkTX/Carla/releases/latest
+After having installed the package, run ``python -m pycarla.carla --download``
+to download the correct version of Carla.
 
-#. After having installed the package, run ``python -m pycarla.carla
-   --download`` to download the correct version of Carla.
-#. Prepare some Carla configuration using the installed Carla: ``python -m
-   pycarla.carla --run``
+If you're not in Linux, pre-built binaries for major OS available at
+https://github.com/falkTX/Carla/releases/latest
 
 **N.B. Configure Carla in ``patchbay`` mode (if you cannot use GUI, set ``ProcessMode=3`` into ``~/.config/falkTX/Carla2.conf``)**
 

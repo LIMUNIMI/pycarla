@@ -129,11 +129,14 @@ class Carla(ExternalProcess):
         self.client = jack.Client('temporary')
         ports_before = self.client.get_ports()
 
+        if self.proj_path:
+            proj_path = os.path.abspath(self.proj_path)
+        else:
+            proj_path = ""
+
         # starting Carla
-        self.process = subprocess.Popen([
-            CARLA_PATH + "Carla", self.nogui,
-            os.path.abspath(self.proj_path)
-        ],
+        self.process = subprocess.Popen(
+            [CARLA_PATH + "Carla", self.nogui, proj_path],
             preexec_fn=os.setsid)
 
         # waiting

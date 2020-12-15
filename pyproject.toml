@@ -33,7 +33,3 @@ python-rtmidi = "^1.4.6"
 [tool.poetry.dev-dependencies]
 ipdb = "^0.13.2"
 ipython = "^7.15.0"
-
-[build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"

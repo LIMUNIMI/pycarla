@@ -1,21 +1,9 @@
 import argparse
 import sys
 
-from .synth import CARLA_PATH, Carla, JackServer
+from .synth import CARLA_PATH, Carla, JackServer, progressbar
 
 version = "2.1"
-
-
-def progress(count, block_size, total, status='Download'):
-    bar_len = 60
-    count *= block_size
-    filled_len = int(round(bar_len * count / float(total)))
-
-    percents = round(100.0 * count / float(total), 1)
-    bar = '=' * filled_len + '-' * (bar_len - filled_len)
-
-    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
-    sys.stdout.flush()
 
 
 def download():
@@ -35,11 +23,11 @@ def download():
             arch + '.tar.xz'
         try:
             fname, header = urllib.request.urlretrieve(target_url,
-                                                       reporthook=progress)
+                                                       reporthook=progressbar)
         except Exception as e:
             print("Error while downloading Carla!", file=sys.stderr)
             print(e, file=sys.stderr)
-        progress(10, 1, 10, status='Completed!')
+        progressbar(10, 1, 10, status='Completed!')
         print("\n")
 
         print("Extracting archive...")
@@ -68,21 +56,21 @@ def run_carla():
         print("Processes already closed!")
 
 
-argparser = argparse.ArgumentParser(
-    description="Manage the Carla instance verion")
-argparser.add_argument(
-    "-d",
-    "--download",
-    action="store_true",
-    help="Download the correct Carla version in the installation directory of\
-this python package.")
-
-argparser.add_argument("-r",
-                       "--run",
-                       action="store_true",
-                       help="Run the Carla instance previously downloaded.")
-
 if __name__ == "__main__":
+    argparser = argparse.ArgumentParser(
+        description="Manage the Carla instance verion")
+    argparser.add_argument(
+        "-d",
+        "--download",
+        action="store_true",
+        help="Download the correct Carla version in the installation directory of\
+    this python package.")
+
+    argparser.add_argument("-r",
+                           "--run",
+                           action="store_true",
+                           help="Run the Carla instance previously downloaded.")
+
     args = argparser.parse_args()
     if args.download and args.run:
         print("Please, provide one option at a time!")

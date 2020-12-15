@@ -13,6 +13,7 @@ import soundfile as sf
 
 import jack
 import sounddevice as sd
+# from .carla import progress
 
 mido.set_backend('mido.backends.rtmidi/UNIX_JACK')
 
@@ -109,7 +110,7 @@ class Carla(ExternalProcess):
 
         if not os.path.exists(CARLA_PATH):
             raise Warning(
-                "Carla seems not to be installed. If you're on Linux, you can\
+                "Carla seems not to be installed. If you're on Linux, you can \
 run ``python -m pycarla.carla -d`` to install it!")
 
     def restart_carla(self):
@@ -358,7 +359,7 @@ class MIDIPlayer():
             # note off
             outport.send(mido.Message('note_off', note=pitch, channel=channel))
 
-    def synthesize_midi_file(self, midifile, sync=True):
+    def synthesize_midi_file(self, midifile, sync=True, progress=True):
         """
         Send midi messages contained in `filename` to `self.port`
 
@@ -374,6 +375,9 @@ class MIDIPlayer():
         returned and you can wait for that process to terminate (e.g. by
         calling its `join` method). You can also wait by calling the `wait`
         method of this object.
+
+        If `progress` is True, a bar is printed showing the progress of the
+        synthesis.
         """
         if not hasattr(self, 'port'):
             self._update_port()
@@ -382,9 +386,14 @@ class MIDIPlayer():
             midifile = mido.MidiFile(midifile)
 
         def play():
+            n_msg = sum(len(t) for t in midifile.tracks)
             with mido.open_output(self.port, autoreset=True) as outport:
-                for msg in midifile.play():
+                for i, msg in enumerate(midifile.play()):
+                    if progress:
+                        progressbar(i, 1, n_msg, status='Synthesis')
                     outport.send(msg)
+                if progress:
+                    progressbar(n_msg, 1, n_msg, status='Completed!')
 
         if sync:
             play()
@@ -407,3 +416,17 @@ def get_smf_duration(filename):
     Return note dration of a file from a path
     """
     return mido.MidiFile(filename).length
+
+
+def progressbar(count, block_size, total, status='Download'):
+    bar_len = 60
+    count *= block_size
+    filled_len = int(round(bar_len * count / float(total)))
+
+    percents = round(100.0 * count / float(total), 1)
+    bar = '=' * filled_len + '-' * (bar_len - filled_len)
+
+    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
+    sys.stdout.flush()
+
+

@@ -3,20 +3,23 @@ Installation
 
 The backbone of this project are the multiple dependencies on which it depends. Since it's difficult to provide a script to automatically install all of these dependencies, here is a little handbook about how to install them.
 
+TLDR
+````
+
 #. Use Linux: it's free. For Windows and Mac, you can still install Carla and
    Jack by yourself; however, I refuse to support non-free software.
 #. In general, use https://pkgs.org to look for the command needed in your
    distro.
-#. Install: ``jackd``
+#. Install: ``jackd`` 1.9
 #. Make sure that it is available in your ``PATH`` environment variable
 
-Installing pycarla
-``````````````````
+1. Installing pycarla
+`````````````````````
 
 ``pip install --upgrade pip pycarla``
 
-Installing jack
-```````````````
+2. Installing jack
+``````````````````
 
 #. Ubuntu/Debian based: ``sudo apt-get install jackd2``
 #. Arch based: ``sudo pacman -Sy jack2``
@@ -26,8 +29,8 @@ Installing jack
 For other Os, pre-built binaries are available at
 https://jackaudio.org/downloads/
 
-Installing Carla
-``````````````````
+3. Installing Carla
+```````````````````
 
 After having installed the package, run ``python -m pycarla.carla --download``
 to download the correct version of Carla.
@@ -55,4 +58,4 @@ Used plugins are:
 
 .. _SalamanderGrandPianoV3: http://freepats.zenvoid.org/Piano/SalamanderGrandPiano/SalamanderGrandPianoV3+20161209_48khz24bit.tar.xz
 
-#. Run ``poetry run -m pycarla`` to do a little test
+#. Run ``poetry run -m pycarla <a_midi_file.mid>`` to do a little test

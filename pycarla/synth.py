@@ -7,6 +7,7 @@ import subprocess
 import sys
 import threading
 import time
+import shutil
 
 import mido
 import soundfile as sf
@@ -70,6 +71,10 @@ class JackServer(ExternalProcess):
         """
         super().__init__()
         self.options = options
+        if not shutil.which('jackd'):
+            raise Warning(
+                "Jack seems not to be installed. Install it and put the \
+``jackd`` command in your path.")
 
     def start(self):
         """
@@ -108,10 +113,16 @@ class Carla(ExternalProcess):
         else:
             self.nogui = ""
 
-        if not os.path.exists(CARLA_PATH):
-            raise Warning(
-                "Carla seems not to be installed. If you're on Linux, you can \
-run ``python -m pycarla.carla -d`` to install it!")
+        if sys.platform == 'linux':
+            if not os.path.exists(CARLA_PATH):
+                raise Warning(
+                    "Carla seems not to be installed. Run \
+``python -m pycarla.carla -d`` to install it!")
+        else:
+            if not shutil.which('carla'):
+                raise Warning(
+                    "Carla seems not to be installed. Download it and put the \
+``Carla`` command in your path.")
 
     def restart_carla(self):
         """

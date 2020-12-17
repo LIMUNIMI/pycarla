@@ -1,8 +1,8 @@
 pyCarla
 ==========
 
-.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4332847.svg
-   :target: https://doi.org/10.5281/zenodo.4332847
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4332846.svg
+   :target: https://doi.org/10.5281/zenodo.4332846
 
 A python module based on Linux commands for synthesizing MIDI events and files
 from python code with ultra time precision using any kind of audio plugin!

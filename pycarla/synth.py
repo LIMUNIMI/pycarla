@@ -99,7 +99,8 @@ class Carla(ExternalProcess):
         """
         Creates a Carla object, ready to be started.
 
-        `min_wait` is the minimum amount of seconds waited when starting Carla
+        `min_wait` is the minimum amount of seconds waited when starting Carla;
+        it is useful if your preset takes a bit to be loaded.
 
         `nogui` is False if you want to use the gui
         """
@@ -141,13 +142,11 @@ class Carla(ExternalProcess):
 
     def start(self):
         """
-        Start carla and Jack and wait `self.min_wait` seconds after a new port
-        is created and ready in Jack. At least one new port must be created
-        because this returns.
+        Start carla and Jack and wait `self.min_wait` seconds after a Carla
+        instance is ready.
         """
         self.server.start()
         self.client = jack.Client('temporary')
-        ports_before = self.client.get_ports()
 
         if self.proj_path:
             proj_path = os.path.abspath(self.proj_path)
@@ -160,20 +159,17 @@ class Carla(ExternalProcess):
             preexec_fn=os.setsid)
 
         # waiting
-        ports_after = self.client.get_ports()
         start = time.time()
-        CHANGED = False
+        READY = self.exists()
         while True:
-            if len(ports_before) != len(ports_after):
+            if not READY and self.exists():
                 start = time.time()
-                CHANGED = True
-                ports_before = ports_after
-            if time.time() - start >= self.min_wait and CHANGED:
+                READY = True
+            if time.time() - start >= self.min_wait and READY:
                 break
             if time.time() - start >= 20:
                 self.restart()
-            time.sleep(0.025)
-            ports_after = self.client.get_ports()
+            time.sleep(0.1)
 
     def kill_carla(self):
         """
@@ -189,7 +185,7 @@ class Carla(ExternalProcess):
         self.kill_carla()
         self.server.wait()
 
-    def exists(self, ports=["Carla:events-in", "Carla:audio*"]):
+    def exists(self, ports=["Carla:events*", "Carla:audio*"]):
         """
         simply checks if the Carla process is running and ports are available
 
@@ -211,6 +207,13 @@ class Carla(ExternalProcess):
 
         return True
 
+    def wait_exists(self):
+        """
+        Waits until a Carla instance is ready in Jack
+        """
+        while not self.exists():
+            time.sleep(0.5)
+
 
 class AudioRecorder():
     AUDIO_PORT = 'carla'
@@ -226,26 +229,46 @@ class AudioRecorder():
 
         If `channels` and `samplerate` are not used, the maximum value usable
         for Carla is used (samplerate is usually set by jack server...)
+
+        If the Carla instance is not found, this method rase a
+        `RuntimeWarning`. To avoid it, use ``Carla.exists`` method. Note that
+        ``Carla.start`` already does that!
         """
+        super().__init__()
+
         # make newer jack and carla instances visible to sounddevice and jack:
         sd._exit_handler()
         sd._initialize()
 
-        self.channels = channels
-        self.samplerate = samplerate
+        self.get_default_params()
+        if channels:
+            self.channels = channels
+        if samplerate:
+            self.samplerate = samplerate
+        self.dtype = dtype
+        sd.default.device = self.AUDIO_PORT
 
+    def get_default_params(self):
+        """
+        Set channels and samplerate according to the default paramters of the
+        device.
+
+        If the Carla instance is not found, this method rase a
+        `RuntimeWarning`. To avoid it, use ``Carla.exists`` method. Note that
+        ``Carla.start`` already does that!
+        """
         # get default values and params
         devicelist = sd.query_devices()
+        found = False
         for device in devicelist:
             if self.AUDIO_PORT in device['name'].lower():
-                if not channels:
-                    self.channels = device['max_output_channels']
-                if not samplerate:
-                    self.samplerate = device['default_samplerate']
+                found = True
+                self.channels = device['max_output_channels']
+                self.samplerate = device['default_samplerate']
 
+        if not found:
+            raise RuntimeWarning("Cannot find the Carla instance, Retry later!")
         sd.default.device = self.AUDIO_PORT
-        self.dtype = dtype
-        super().__init__()
 
     def start(self, duration):
         """
@@ -269,7 +292,8 @@ class AudioRecorder():
 
     def save_recorded(self, filename):
         """
-        Save the recorded array to file. Extensions supported by ``libsndfile``!
+        Save the recorded array to file. Extensions supported by
+        ``libsndfile``!
         """
 
         if not hasattr(self, 'recorded'):

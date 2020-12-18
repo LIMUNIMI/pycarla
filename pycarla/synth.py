@@ -2,18 +2,18 @@
 import fnmatch
 import multiprocessing
 import os
+import shutil
 import signal
 import subprocess
 import sys
-import threading
 import time
-import shutil
 
 import mido
 import soundfile as sf
 
 import jack
 import sounddevice as sd
+
 # from .carla import progress
 
 mido.set_backend('mido.backends.rtmidi/UNIX_JACK')
@@ -39,19 +39,50 @@ def Popen(command, **args):
 
 
 class ExternalProcess:
+    """
+    A class for processes with a pre-defined duration
+    """
+
     def __init__(self):
-        self.process = threading.Event()  # just something with a wait method
-        self.process.set()
+        class FakeProcess:
+            """
+            A class to create a fake process/popen for initializing
+            `ExternalProcess`
+            """
+            def __init__(obj):
+                pass
+
+            def wait(obj):
+                pass
+
+            def poll(obj):
+                return 1
+
+            def is_alive(obj):
+                return False
+
+            def terminate(obj):
+                pass
+
+            def kill(obj):
+                pass
+
+            def start(obj):
+                pass
+
+        self.process = FakeProcess()
         self._start = time.time()
         self._duration = 0
 
     def kill(self):
+        """
+        Just calls `self.process.terminate()`
+        """
         self.process.terminate()
 
     def wait(self):
         """
-        Child objects should set `self._start` and `self._duration` so that
-        `self.wait` works as expected.
+        Wait the `self._duration` and then kill the process.
         """
         sleep = self._duration - (time.time() - self._start)
         if sleep > 0:
@@ -78,13 +109,14 @@ class JackServer(ExternalProcess):
 
     def start(self):
         """
-        Starts the server
+        Starts the server if not already started
         """
-        self.process = Popen(['jackd'] + self.options)
+        if self.process.poll() is not None:
+            self.process = Popen(['jackd'] + self.options)
 
     def restart(self):
         """
-        Kill and restarts
+        Wait for the duration of this `ExternalProcess`, then kill and restart.
         """
         self.wait()
         self.start()
@@ -116,8 +148,7 @@ class Carla(ExternalProcess):
 
         if sys.platform == 'linux':
             if not os.path.exists(CARLA_PATH):
-                raise Warning(
-                    "Carla seems not to be installed. Run \
+                raise Warning("Carla seems not to be installed. Run \
 ``python -m pycarla.carla -d`` to install it!")
         else:
             if not shutil.which('carla'):
@@ -202,7 +233,7 @@ class Carla(ExternalProcess):
             if not fnmatch.filter(real_ports, port):
                 return False
 
-        if self.process.poll():
+        if self.process.poll() is not None:
             return False
 
         return True
@@ -267,7 +298,8 @@ class AudioRecorder():
                 self.samplerate = device['default_samplerate']
 
         if not found:
-            raise RuntimeWarning("Cannot find the Carla instance, Retry later!")
+            raise RuntimeWarning(
+                "Cannot find the Carla instance, Retry later!")
         sd.default.device = self.AUDIO_PORT
 
     def start(self, duration):
@@ -463,5 +495,3 @@ def progressbar(count, block_size, total, status='Download'):
 
     sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
     sys.stdout.flush()
-
-

@@ -160,7 +160,7 @@ class Carla(ExternalProcess):
         """
         Only restarts Carla, not the Jack server!
         """
-        self.kill()
+        self.kill_carla()
         self.start()
 
     def restart(self):
@@ -168,8 +168,9 @@ class Carla(ExternalProcess):
         Restarts both the server and Carla!
         """
         print("Restarting Carla")
+        self.kill_carla()
         self.server.restart()
-        self.restart_carla()
+        self.start()
 
     def start(self):
         """

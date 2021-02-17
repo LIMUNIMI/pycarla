@@ -178,7 +178,13 @@ class Carla(ExternalProcess):
         instance is ready.
         """
         self.server.start()
-        self.client = jack.Client('temporary')
+        for i in range(10):
+            try:
+                self.client = jack.Client('temporary')
+            except Exception:
+                time.sleep(1)
+        if not hasattr(self, 'client'):
+            raise RuntimeWarning("Cannot connect to Jack server!")
 
         if self.proj_path:
             proj_path = os.path.abspath(self.proj_path)

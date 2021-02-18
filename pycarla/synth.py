@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import fnmatch
 import multiprocessing
 import os
@@ -38,47 +39,49 @@ def Popen(command, **args):
                             **args)
 
 
+class FakeProcess:
+    """
+    A class to create a fake process/popen for initializing
+    `ExternalProcess`
+    """
+    def __init__(obj):
+        pass
+
+    def wait(obj):
+        pass
+
+    def poll(obj):
+        return 1
+
+    def is_alive(obj):
+        return False
+
+    def terminate(obj):
+        pass
+
+    def kill(obj):
+        pass
+
+    def start(obj):
+        pass
+
+
 class ExternalProcess:
     """
     A class for processes with a pre-defined duration
     """
-
-    def __init__(self):
-        class FakeProcess:
-            """
-            A class to create a fake process/popen for initializing
-            `ExternalProcess`
-            """
-            def __init__(obj):
-                pass
-
-            def wait(obj):
-                pass
-
-            def poll(obj):
-                return 1
-
-            def is_alive(obj):
-                return False
-
-            def terminate(obj):
-                pass
-
-            def kill(obj):
-                pass
-
-            def start(obj):
-                pass
-
+    def __init__(self, *args):
         self.process = FakeProcess()
         self._start = time.time()
         self._duration = 0
+        self.args = args
 
     def kill(self):
         """
         Just calls `self.process.terminate()`
         """
         self.process.terminate()
+        self.__init__(*self.args)
 
     def wait(self):
         """
@@ -100,7 +103,7 @@ class JackServer(ExternalProcess):
         `options` : list[str]
             list of options to be passed to Popen
         """
-        super().__init__()
+        super().__init__(options)
         self.options = options
         if not shutil.which('jackd'):
             raise Warning(
@@ -113,6 +116,7 @@ class JackServer(ExternalProcess):
         """
         if self.process.poll() is not None:
             self.process = Popen(['jackd'] + self.options)
+            self._start = time.time()
 
     def restart(self):
         """
@@ -195,6 +199,7 @@ class Carla(ExternalProcess):
         self.process = subprocess.Popen(
             [CARLA_PATH + "Carla", self.nogui, proj_path],
             preexec_fn=os.setsid)
+        self._start = time.time()
 
         # waiting
         start = time.time()
@@ -465,6 +470,8 @@ class MIDIPlayer():
                 for i, msg in enumerate(midifile.play()):
                     if progress:
                         progressbar(i, 1, n_msg, status='Synthesis')
+                    # TODO
+                    # msg.time = 0
                     outport.send(msg)
                 if progress:
                     progressbar(n_msg, 1, n_msg, status='Completed!')

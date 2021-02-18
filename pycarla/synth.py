@@ -8,6 +8,7 @@ import signal
 import subprocess
 import sys
 import time
+from typing import Union
 
 import mido
 import soundfile as sf
@@ -438,7 +439,10 @@ class MIDIPlayer():
             # note off
             outport.send(mido.Message('note_off', note=pitch, channel=channel))
 
-    def synthesize_midi_file(self, midifile, sync=True, progress=True):
+    def synthesize_midi_file(self,
+                             midifile: Union[mido.MidiFile, str],
+                             sync=True,
+                             progress=True) -> multiprocessing.Process:
         """
         Send midi messages contained in `filename` to `self.port`
 
@@ -449,14 +453,17 @@ class MIDIPlayer():
         enetering this method. You can force an update with `self._update_port`
         method.
 
-        If `sync` is set to False, a new sub-process is dspached and this
+        If `sync` is set to False, a new sub-process is dispached and this
         function returns suddenly.  The `multiprocessing.Process` object is
         returned and you can wait for that process to terminate (e.g. by
         calling its `join` method). You can also wait by calling the `wait`
         method of this object.
 
+        If `sync` is True, a new process is dispatched, but it is waited in
+        vefore returning.
+
         If `progress` is True, a bar is printed showing the progress of the
-        synthesis.
+        synthesis. If `sync` is False, `progress` is not used.
         """
         if not hasattr(self, 'port'):
             self._update_port()
@@ -465,23 +472,26 @@ class MIDIPlayer():
             midifile = mido.MidiFile(midifile)
 
         def play():
-            n_msg = sum(len(t) for t in midifile.tracks)
             with mido.open_output(self.port, autoreset=True) as outport:
                 for i, msg in enumerate(midifile.play()):
-                    if progress:
-                        progressbar(i, 1, n_msg, status='Synthesis')
-                    # TODO
-                    # msg.time = 0
                     outport.send(msg)
-                if progress:
-                    progressbar(n_msg, 1, n_msg, status='Completed!')
+
+        self.process = multiprocessing.Process(target=play)
+        self.process.start()
 
         if sync:
-            play()
-        else:
-            self.process = multiprocessing.Process(target=play)
-            self.process.start()
-            return self.process
+            q = 0.01
+            i = 0.0
+            dur = midifile.length  # type: ignore
+            while self.process.is_alive():
+                if progress:
+                    progressbar(i, 1, dur, status='Synthesis')
+                time.sleep(q)
+                i += q
+            if progress:
+                progressbar(dur, 1, dur, status='Completed!')
+
+        return self.process
 
     def wait(self):
         """

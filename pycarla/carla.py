@@ -1,17 +1,28 @@
 import argparse
+import fnmatch
+import os
+import platform
+import random
+import shutil
+import signal
+import subprocess
 import sys
+import tarfile
+import time
+import urllib.request
 
-from .synth import CARLA_PATH, Carla, JackServer, progressbar
+import mido
+
+import jack
+
+from .jackserver import JackServer
+
+from .utils import progressbar, ExternalProcess
 
 version = "2.1"
 
 
 def download():
-    import platform
-    import tarfile
-    import urllib.request
-    import shutil
-    import random
 
     if sys.platform == 'linux':
         # download carla
@@ -56,6 +67,150 @@ def run_carla():
         print("Processes already closed!")
 
 
+mido.set_backend('mido.backends.rtmidi/UNIX_JACK')
+
+THISDIR = os.path.dirname(os.path.realpath(__file__))
+
+if sys.platform == 'linux':
+    # use our carla version
+    CARLA_PATH = os.path.join(THISDIR, "carla") + "/"
+else:
+    # use the system version
+    CARLA_PATH = ""
+
+
+class Carla(ExternalProcess):
+    def __init__(self,
+                 proj_path: str,
+                 server: JackServer,
+                 min_wait: float = 0,
+                 nogui: bool = True):
+        """
+        Creates a Carla object, ready to be started.
+
+        `min_wait` is the minimum amount of seconds waited when starting Carla;
+        it is useful if your preset takes a bit to be loaded.
+
+        `nogui` is False if you want to use the gui
+        """
+        super().__init__()
+        # create Jack client to query Jack
+        self.proj_path = proj_path
+        self.server = server
+        self.min_wait = min_wait
+        if nogui:
+            self.nogui = "-n"
+        else:
+            self.nogui = ""
+
+        if sys.platform == 'linux':
+            if not os.path.exists(CARLA_PATH):
+                raise Warning("Carla seems not to be installed. Run \
+``python -m pycarla.carla -d`` to install it!")
+        else:
+            if not shutil.which('carla'):
+                raise Warning(
+                    "Carla seems not to be installed. Download it and put the \
+``Carla`` command in your path.")
+
+    def restart_carla(self):
+        """
+        Only restarts Carla, not the Jack server!
+        """
+        self.kill_carla()
+        self.start()
+
+    def restart(self):
+        """
+        Restarts both the server and Carla!
+        """
+        print("Restarting Carla")
+        self.kill_carla()
+        self.server.restart()
+        self.start()
+
+    def start(self):
+        """
+        Start carla and Jack and wait `self.min_wait` seconds after a Carla
+        instance is ready.
+        """
+        self.server.start()
+        for i in range(10):
+            try:
+                self.client = jack.Client('temporary')
+            except Exception:
+                time.sleep(1)
+        if not hasattr(self, 'client'):
+            raise RuntimeWarning("Cannot connect to Jack server!")
+
+        if self.proj_path:
+            proj_path = os.path.abspath(self.proj_path)
+        else:
+            proj_path = ""
+
+        # starting Carla
+        self.process = subprocess.Popen(
+            [CARLA_PATH + "Carla", self.nogui, proj_path],
+            preexec_fn=os.setsid)
+        self._start = time.time()
+
+        # waiting
+        start = time.time()
+        READY = self.exists()
+        while True:
+            if not READY and self.exists():
+                start = time.time()
+                READY = True
+            if time.time() - start >= self.min_wait and READY:
+                break
+            if time.time() - start >= 20:
+                self.restart()
+            time.sleep(0.1)
+
+    def kill_carla(self):
+        """
+        kill carla, but not the server
+        """
+        self.client.close()
+        os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+
+    def kill(self):
+        """
+        kill carla and wait for the server
+        """
+        self.kill_carla()
+        self.server.wait()
+
+    def exists(self, ports=["Carla:events*", "Carla:audio*"]):
+        """
+        simply checks if the Carla process is running and ports are available
+
+        `ports` is a list of string name representing Jack ports; you can use
+            '*', '?' etc.
+
+        Returns
+        ---
+        bool: True if all ports in `ports` exist and the Carla process is
+            running, false otherwise
+        """
+        real_ports = [port.name for port in self.client.get_ports()]
+        for port in ports:
+            if not fnmatch.filter(real_ports, port):
+                return False
+
+        if self.process.poll() is not None:
+            return False
+
+        return True
+
+    def wait_exists(self):
+        """
+        Waits until a Carla instance is ready in Jack
+        """
+        while not self.exists():
+            time.sleep(0.5)
+
+
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
         description="Manage the Carla instance verion")
@@ -63,13 +218,15 @@ if __name__ == "__main__":
         "-d",
         "--download",
         action="store_true",
-        help="Download the correct Carla version in the installation directory of\
+        help=
+        "Download the correct Carla version in the installation directory of\
     this python package.")
 
-    argparser.add_argument("-r",
-                           "--run",
-                           action="store_true",
-                           help="Run the Carla instance previously downloaded.")
+    argparser.add_argument(
+        "-r",
+        "--run",
+        action="store_true",
+        help="Run the Carla instance previously downloaded.")
 
     args = argparser.parse_args()
     if args.download and args.run:

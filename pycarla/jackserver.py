@@ -1,7 +1,6 @@
 import shutil
-import time
 
-from .utils import Popen, ExternalProcess
+from .utils import ExternalProcess, Popen
 
 
 class JackServer(ExternalProcess):
@@ -27,12 +26,11 @@ class JackServer(ExternalProcess):
         """
         if self.process.poll() is not None:
             self.process = Popen(['jackd'] + self.options)
-            self._start = time.time()
 
     def restart(self):
         """
         Wait for the duration of this `ExternalProcess`, then kill and restart.
+        If the duration is not set, it doesn't return
         """
         self.wait()
         self.start()
-

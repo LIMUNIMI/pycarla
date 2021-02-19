@@ -1,6 +1,5 @@
 import subprocess
 import sys
-import time
 
 import mido
 
@@ -67,7 +66,6 @@ class ExternalProcess:
     """
     def __init__(self, *args):
         self.process = FakeProcess()
-        self._start = time.time()
         self._duration = 0
         self.args = args
 
@@ -82,7 +80,12 @@ class ExternalProcess:
         """
         Wait the `self._duration` and then kill the process.
         """
-        sleep = self._duration - (time.time() - self._start)
-        if sleep > 0:
-            time.sleep(sleep)
-        self.kill()
+        if self._duration > 0:
+            timeout = None
+        else:
+            timeout = self._duration
+
+        try:
+            self.process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            self.kill()

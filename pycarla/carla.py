@@ -16,8 +16,7 @@ import mido
 import jack
 
 from .jackserver import JackServer
-
-from .utils import progressbar, ExternalProcess
+from .utils import ExternalProcess, progressbar
 
 version = "2.1"
 
@@ -152,7 +151,6 @@ class Carla(ExternalProcess):
         self.process = subprocess.Popen(
             [CARLA_PATH + "Carla", self.nogui, proj_path],
             preexec_fn=os.setsid)
-        self._start = time.time()
 
         # waiting
         start = time.time()
@@ -176,7 +174,8 @@ class Carla(ExternalProcess):
 
     def kill(self):
         """
-        kill carla and wait for the server
+        kill carla and wait for the server (the duration of the server must be
+        set, otherwise it doesn't return)
         """
         self.kill_carla()
         self.server.wait()

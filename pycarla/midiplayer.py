@@ -104,11 +104,12 @@ class MIDIPlayer():
     def synthesize_midi_file(self,
                              midifile: Union[mido.MidiFile, str],
                              sync=True,
-                             progress=True) -> multiprocessing.Process:
+                             progress=True,
+                             max_dur=1e15) -> multiprocessing.Process:
         """
         Send midi messages contained in `filename` to `self.port`
 
-        `midifile` can be a `mido.MifiFile` object or a string
+        `midifile` can be a `mido.MidiFile` object or a string
 
         `self.port` is initialized during in the constructor of this object but
         if no Carla instance is found it is automatically updated when
@@ -126,6 +127,10 @@ class MIDIPlayer():
 
         If `progress` is True, a bar is printed showing the progress of the
         synthesis. If `sync` is False, `progress` is not used.
+
+        `max_dur` is the maximum time for which is allowed to play
+
+        After the playback, ports are resetted
         """
         if not hasattr(self, 'port'):
             self._update_port()
@@ -133,17 +138,22 @@ class MIDIPlayer():
         if type(midifile) is str:
             midifile = mido.MidiFile(midifile)
 
+        dur = min(midifile.length, max_dur)  # type: ignore
+
         def play():
             with mido.open_output(self.port, autoreset=True) as outport:
                 for i, msg in enumerate(midifile.play()):
+                    if msg.time >= dur:
+                        break
                     outport.send(msg)
+                outport.reset()
 
         self.process = multiprocessing.Process(target=play)
         self.process.start()
 
         if sync:
-            _wait_dur(midifile.length, progress)  # type: ignore
-            self.wait()
+            _wait_dur(dur, progress)
+            self.process.terminate()
 
         return self.process
 

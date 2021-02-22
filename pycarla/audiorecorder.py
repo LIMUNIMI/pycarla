@@ -12,7 +12,7 @@ class AudioRecorder():
                  channels=None,
                  samplerate=None,
                  dtype='float32',
-                 blocksize=sd.default.blocksize):
+                 blocksize=1024):
         """
         Records output from a Carla instance.
 
@@ -66,10 +66,10 @@ class AudioRecorder():
                 "Cannot find the Carla instance, Retry later!")
         sd.default.device = self.AUDIO_PORT
 
-    def start(self, duration, sync=True):
+    def start(self, duration, sync=False):
         """
         Record audio for ``duration`` seconds. Note that this function blocks
-        if `sync` is True (default), otherwise, this returns suddenly and you
+        if `sync` is True, otherwise, this returns suddenly and you
         should wait/stop by calling the `wait` method of this object which
         constructs the recorded array in `self.recorded`
 

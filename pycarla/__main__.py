@@ -7,33 +7,33 @@ Use with an argument consisting of the path to a MIDI file
 import subprocess
 import sys
 
-import numpy as np
 import mido
+import numpy as np
 
-from .synth import (AudioRecorder, Carla, JackServer, MIDIPlayer,
-                    get_smf_duration)
+from . import AudioRecorder, Carla, JackServer, MIDIPlayer, get_smf_duration
 
 FINAL_DECAY = 4
-server = JackServer(['-R', '-d', 'alsa'])
+blocksize = 1024
+server = JackServer(['-R', '-d', 'alsa', '-p', str(blocksize)])
 carla = Carla("carla_proj/pianoteq0.carxp", server, min_wait=4)
 carla.start()
 
 filename = sys.argv[1]
-player = MIDIPlayer()
-recorder = AudioRecorder()
+player = MIDIPlayer(False)
+recorder = AudioRecorder(blocksize-blocksize)
 
 # testing one note
-print("Playing and recording one note..")
-duration = 1
-pitch = 64
-recorder.start(duration + FINAL_DECAY)
-player.synthesize_midi_note(pitch, 64, duration, 0)
-recorder.wait()
-audio = recorder.recorded
-if not np.any(audio):
-    print("Error, no sample != 0")
-    carla.kill()
-    sys.exit()
+# print("Playing and recording one note in real-time mode..")
+# duration = 1
+# pitch = 64
+# recorder.start(duration + FINAL_DECAY, sync=False)
+# player.synthesize_midi_note(pitch, 64, duration, 0, sync=False)
+# recorder.wait()
+# audio = recorder.recorded
+# if not np.any(audio):
+#     print("\nError, no sample != 0")
+#     carla.kill()
+#     sys.exit()
 
 # computing pitch from audio
 # print(f"Detecting pitch (correct one is {pitch})...")
@@ -43,12 +43,11 @@ if not np.any(audio):
 # print(f"Detected pitch: {pitch}, {confidence}")
 
 # testing full midi file
-print("Playing and recording full file..")
-midifile = mido.MidiFile(filename)
+player = MIDIPlayer(True)
+print("Playing and recording full file in freewheeling mode..")
 duration = get_smf_duration(filename)
-recorder.start(duration + FINAL_DECAY)
-player.synthesize_midi_file(midifile, sync=False)
-player.wait()
+recorder.start(duration + FINAL_DECAY, sync=False)
+player.synthesize_midi_file(filename, sync=True, progress=False)
 recorder.wait()
 recorder.save_recorded("session.wav")
 server.kill()

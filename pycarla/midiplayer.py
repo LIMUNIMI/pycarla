@@ -28,6 +28,7 @@ class MIDIPlayer():
         super().__init__()
         self.connected = False
         self.freewheel = freewheel
+        self._is_freewheel = False
 
     def _setup(self):
         self.client = jack.Client('pycarla-midiplayer')
@@ -55,15 +56,14 @@ class MIDIPlayer():
 
     def synthesize_messages(self,
                             messages: List[mido.Message],
-                            sync=True,
-                            progress=True,
+                            sync=False,
+                            progress=False,
                             max_dur=1e15) -> multiprocessing.Process:
         """
         Synthesize a list of messages
 
-        0. Create a jack client if not yet done
-        1. Connect the port of this jack client to Carla if not yet done
-        2. Sort messages by time
+        1. Create a jack client if not yet done
+        2. Connect the port of this jack client to Carla if not yet done
         3. Send the list of messages to the Carla instance
 
         The process happens in a separate process saved in `self.process`
@@ -87,12 +87,11 @@ class MIDIPlayer():
         easier to work with in Python but you may want to add and subtract 1
         when communicating with the user.
         """
-        messages.sort(key=lambda x: x.time)
         self._messages = messages
-        dur = min(max_dur, self._messages[-1].time)
         self.process = multiprocessing.Process(target=self._play)
         self.process.start()
 
+        dur = min(max_dur, sum(msg.time for msg in messages))
         if sync:
             _wait_dur(dur, progress, condition=self.process.is_alive)
             self.process.terminate
@@ -106,7 +105,7 @@ class MIDIPlayer():
         global msg, offset
         it = iter(self._messages)
         msg = next(it)
-        offset = msg.time
+        offset = 0
 
         @self.client.set_process_callback
         def process(frames):
@@ -207,7 +206,7 @@ class MIDIPlayer():
         if type(midifile) is str:
             midifile = mido.MidiFile(midifile)
 
-        messages = [m for track in midifile.tracks for m in track]
+        messages = [m for m in midifile]
 
         return self.synthesize_messages(messages, **kwargs)
 
@@ -342,8 +341,7 @@ PATH")
             os.remove(self._tempname)
 
 
-def _wait_dur(dur, progress, condition=lambda: True):
-    q = 0.005
+def _wait_dur(dur, progress, condition=lambda: True, q=0.005):
     i = 0.0
     while i < dur and condition():
         if progress:

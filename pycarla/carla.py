@@ -11,9 +11,8 @@ import tarfile
 import time
 import urllib.request
 
-import mido
-
 import jack
+import mido
 
 from .jackserver import JackServer
 from .utils import ExternalProcess, progressbar
@@ -93,7 +92,6 @@ class Carla(ExternalProcess):
         `nogui` is False if you want to use the gui
         """
         super().__init__()
-        # create Jack client to query Jack
         self.proj_path = proj_path
         self.server = server
         self.min_wait = min_wait
@@ -134,13 +132,6 @@ class Carla(ExternalProcess):
         instance is ready.
         """
         self.server.start()
-        for i in range(10):
-            try:
-                self.client = jack.Client('temporary')
-            except Exception:
-                time.sleep(1)
-        if not hasattr(self, 'client'):
-            raise RuntimeWarning("Cannot connect to Jack server!")
 
         if self.proj_path:
             proj_path = os.path.abspath(self.proj_path)
@@ -192,7 +183,7 @@ class Carla(ExternalProcess):
         bool: True if all ports in `ports` exist and the Carla process is
             running, false otherwise
         """
-        real_ports = [port.name for port in self.client.get_ports()]
+        real_ports = self.server.get_ports()
         for port in ports:
             if not fnmatch.filter(real_ports, port):
                 return False

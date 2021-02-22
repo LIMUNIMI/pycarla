@@ -1,4 +1,8 @@
+from typing import List
 import shutil
+import time
+
+import jack
 
 from .utils import ExternalProcess, Popen
 
@@ -6,7 +10,8 @@ from .utils import ExternalProcess, Popen
 class JackServer(ExternalProcess):
     def __init__(self, options):
         """
-        Creates a jack server with given options.
+        Starts a jack server with given options and create a dummy client named
+        `pycarla` to query and interact with it
 
         Args
         ----
@@ -26,6 +31,17 @@ class JackServer(ExternalProcess):
         """
         if self.process.poll() is not None:
             self.process = Popen(['jackd'] + self.options)
+        self.connect()
+        self.freewheel = False
+
+    def connect(self):
+        for i in range(10):
+            try:
+                self.client = jack.Client('pycarla')
+            except Exception:
+                time.sleep(1)
+        if not hasattr(self, 'client'):
+            raise RuntimeWarning("Cannot connect to Jack server!")
 
     def restart(self):
         """
@@ -34,3 +50,10 @@ class JackServer(ExternalProcess):
         """
         self.wait()
         self.start()
+
+    def get_ports(self) -> List[str]:
+        return [port.name for port in self.client.get_ports()]
+
+    def toggle_freewheel(self):
+        self.client.set_freewheel(not self.freewheel)
+        self.freewheel = not self.freewheel

@@ -51,10 +51,10 @@ player.synthesize_midi_file(midifile, sync=False)
 player.wait()
 recorder.wait()
 recorder.save_recorded("session.wav")
+server.kill()
+carla.kill()
 
 # playing wav file
 print("Playing recorded file")
-proc = subprocess.Popen(['aplay', 'session.wav'])
+proc = subprocess.Popen(['play', 'session.wav'])
 proc.wait()
-
-carla.kill()

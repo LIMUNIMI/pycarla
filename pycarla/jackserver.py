@@ -31,17 +31,18 @@ class JackServer(ExternalProcess):
         """
         if self.process.poll() is not None:
             self.process = Popen(['jackd'] + self.options)
+            self.freewheel = False
         self.connect()
-        self.freewheel = False
 
     def connect(self):
-        for i in range(10):
-            try:
-                self.client = jack.Client('pycarla')
-            except Exception:
-                time.sleep(1)
         if not hasattr(self, 'client'):
-            raise RuntimeWarning("Cannot connect to Jack server!")
+            for i in range(10):
+                try:
+                    self.client = jack.Client('pycarla')
+                except Exception:
+                    time.sleep(1)
+            if not hasattr(self, 'client'):
+                raise RuntimeWarning("Cannot connect to Jack server!")
 
     def restart(self):
         """

@@ -11,7 +11,6 @@ import tarfile
 import time
 import urllib.request
 
-import jack
 import mido
 
 from .jackserver import JackServer

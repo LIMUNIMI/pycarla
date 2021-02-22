@@ -57,3 +57,7 @@ class JackServer(ExternalProcess):
     def toggle_freewheel(self):
         self.client.set_freewheel(not self.freewheel)
         self.freewheel = not self.freewheel
+
+    def kill(self):
+        self.client.close()
+        super().kill()

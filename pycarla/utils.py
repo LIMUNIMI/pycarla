@@ -64,6 +64,7 @@ class ExternalProcess:
     """
     A class for processes with a pre-defined duration
     """
+
     def __init__(self, *args):
         self.process = FakeProcess()
         self._duration = 0
@@ -71,7 +72,7 @@ class ExternalProcess:
 
     def kill(self):
         """
-        Just calls `self.process.terminate()`
+        Just calls `self.process.terminate()` and reset this object
         """
         self.process.terminate()
         self.__init__(*self.args)

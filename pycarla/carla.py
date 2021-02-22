@@ -160,7 +160,6 @@ class Carla(ExternalProcess):
         """
         kill carla, but not the server
         """
-        self.client.close()
         os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
 
     def kill(self):

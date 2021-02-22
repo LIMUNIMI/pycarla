@@ -51,7 +51,7 @@ class MIDIPlayer():
 
     def wait(self):
         if hasattr(self, 'process'):
-            self.process.wait()
+            self.process.join()
 
     def synthesize_messages(self,
                             messages: List[mido.Message],

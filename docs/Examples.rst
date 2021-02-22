@@ -29,7 +29,7 @@ Playing and recording one note
     duration = 2
     pitch = 64
     recorder.start(duration + FINAL_DECAY)
-    player.synthesize_midi_note(pitch, 64, duration, 0)
+    player.synthesize_midi_note(pitch, 64, duration, 0, sync=True)
     recorder.wait()
     audio = recorder.recorded
     if not np.any(audio):
@@ -42,15 +42,17 @@ Playing and recording a full MIDI file
 
 .. code-block:: python
 
-    print("Playing and recording full file..")
+    print("Playing and recording full file using freewheeling mode..")
     duration = get_smf_duration("filename.mid")
+    server.toggle_freewheel()
     recorder.start(duration + FINAL_DECAY)
-    player.synthesize_midi_file("filename.mid")
+    player.synthesize_midi_file("filename.mid", sync=True, progress=False)
     # or asynchronously:
     # player.synthesize_midi_file("filename.mid", sync=False)
     # in this case, use
     # player.wait()
     recorder.wait()
+    server.toggle_freewheel()
     recorder.save_recorded("session.wav")
 
 Closing server

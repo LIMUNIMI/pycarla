@@ -10,6 +10,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+
 import os
 import sys
 
@@ -39,7 +40,8 @@ templates_path = ['_templates']
 
 # mock modules that need unsatisfiable dependencies on readthedocs
 autodoc_mock_imports = [
-    "soundfile", "jack", "essentia", "mido", "python-rtmidi", "sounddevice"
+    "soundfile", "jack", "essentia", "mido", "python-rtmidi", "sounddevice",
+    "numpy"
 ]
 
 # -- Options for HTML output -------------------------------------------------

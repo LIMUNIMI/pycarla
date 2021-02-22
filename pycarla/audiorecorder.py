@@ -1,11 +1,18 @@
-import soundfile as sf
+import time
+
+import numpy as np
 import sounddevice as sd
+import soundfile as sf
 
 
 class AudioRecorder():
     AUDIO_PORT = 'carla'
 
-    def __init__(self, channels=None, samplerate=None, dtype='float32'):
+    def __init__(self,
+                 channels=None,
+                 samplerate=None,
+                 dtype='float32',
+                 blocksize=sd.default.blocksize):
         """
         Records output from a Carla instance.
 
@@ -33,6 +40,7 @@ class AudioRecorder():
         if samplerate:
             self.samplerate = samplerate
         self.dtype = dtype
+        self.blocksize = blocksize
         sd.default.device = self.AUDIO_PORT
 
     def get_default_params(self):
@@ -58,25 +66,43 @@ class AudioRecorder():
                 "Cannot find the Carla instance, Retry later!")
         sd.default.device = self.AUDIO_PORT
 
-    def start(self, duration):
+    def start(self, duration, sync=True):
         """
-        Record audio for ``duration`` seconds. Note that this function returns
-        suddenly; call ``wait()`` for wating the end of the recording.
-        """
-        self.recorded = sd.rec((int(duration * self.samplerate)),
-                               channels=self.channels,
-                               samplerate=self.samplerate,
-                               dtype=self.dtype)
+        Record audio for ``duration`` seconds. Note that this function blocks
+        if `sync` is True (default), otherwise, this returns suddenly and you
+        should wait/stop by calling the `wait` method of this object which
+        constructs the recorded array in `self.recorded`
 
-    def rec(self, *args, **kwargs):
+        This function is compatible with Jack freewheeling mode to record
+        offline sessions.
         """
-        Records and waits for the end of the recording
-        """
-        self.start(*args, **kwargs)
-        self.wait()
+        global callback, data
+        data = []
+
+        def callback(indata, frames, time, status):
+            data.append(indata.copy())
+
+        self.stream = sd.InputStream(blocksize=self.blocksize,
+                                     channels=self.channels,
+                                     samplerate=self.samplerate,
+                                     dtype=self.dtype,
+                                     callback=callback)
+        self.stream = self.stream.__enter__()
+        self._needed_blocks = int(
+            duration * self.samplerate / self.blocksize) + 1
+
+        if sync:
+            self.wait()
 
     def wait(self):
-        sd.wait()
+        if hasattr(self, 'stream'):
+            global data
+            # wait the needed number of blocks
+            while len(data) < self._needed_blocks:
+                time.sleep(0.001)
+            self.stream = self.stream.__exit__()
+            self.recorded = np.concatenate(data, axis=0)
+            del data, self.stream
 
     def save_recorded(self, filename):
         """

@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import time
 
 import mido
 
@@ -74,7 +75,11 @@ class ExternalProcess:
         """
         Just calls `self.process.terminate()` and reset this object
         """
-        self.process.terminate()
+        for i in range(10):
+            self.process.kill()
+            if self.process.poll():
+                break
+            time.sleep(0.5)
         self.__init__(*self.args)
 
     def wait(self):

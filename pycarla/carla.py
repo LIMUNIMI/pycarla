@@ -166,7 +166,11 @@ class Carla(ExternalProcess):
         kill carla and wait for the server (the duration of the server must be
         set, otherwise it doesn't return)
         """
-        self.kill_carla()
+        for i in range(10):
+            self.kill_carla()
+            if not self.exists():
+                break
+            time.sleep(0.5)
         self.server.wait()
 
     def exists(self, ports=["Carla:events*", "Carla:audio*"]):

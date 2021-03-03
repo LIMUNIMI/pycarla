@@ -29,6 +29,17 @@ virtual instruments thanks to the excellent Carla:
 #. SFZ
 #. Any other format supported by external plugins
 
+TODO
+----
+
+#. Remove sounddevice dependency in `AudioRecorder` (use jack instead)
+#. Detect Carla zombie process or
+#. Use Carla python code to control Carla host
+#. Update Carla
+#. Support LADISH sessions for automatically starting LinuxSampler if needed
+#. Installation scripts for windows and mac
+
+
 Credits
 =======
 

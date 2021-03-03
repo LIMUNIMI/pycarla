@@ -37,11 +37,6 @@ virtual instruments thanks to the excellent Carla:
 #. SFZ
 #. Any other format supported by external plugins
 
-TODO
-----
-
-#. Support LADISH sessions for automatically starting LinuxSampler if needed
-
 Credits
 =======
 

@@ -89,20 +89,33 @@ class AudioRecorder():
                                      callback=callback)
         self.stream = self.stream.__enter__()
         self._needed_blocks = int(
-            duration * self.samplerate / self.blocksize) + 1
+            duration * self.samplerate / self.blocksize)
 
         if sync:
             self.wait()
 
-    def wait(self):
+    def wait(self, timeout=None):
+        """
+        Wait until recording is finished. If `timeout` is a number, it should
+        be the maximum number of seconds until which the recording stops. A
+        boolean is returned representing if timeout is reached.
+        (returns `False` if timeout is not set)
+        """
+        reached_timeout = False
         if hasattr(self, 'stream'):
             global data
             # wait the needed number of blocks
+            ttt = time.time()
             while len(data) < self._needed_blocks:
-                time.sleep(0.001)
+                if timeout is not None:
+                    if time.time() - ttt > timeout:
+                        reached_timeout = True
+                        break
+                time.sleep(0.0001)
             self.stream = self.stream.__exit__()
             self.recorded = np.concatenate(data, axis=0)
             del data, self.stream
+        return reached_timeout
 
     def save_recorded(self, filename):
         """

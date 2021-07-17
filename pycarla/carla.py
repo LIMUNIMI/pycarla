@@ -71,6 +71,8 @@ THISDIR = os.path.dirname(os.path.realpath(__file__))
 if sys.platform == 'linux':
     # use our carla version
     CARLA_PATH = os.path.join(THISDIR, "carla") + "/"
+    # from pathlib import Path
+    # CARLA_PATH = Path(THISDIR) / "source" / "frontend" / "carla"
 else:
     # use the system version
     CARLA_PATH = ""

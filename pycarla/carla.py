@@ -124,8 +124,13 @@ class Carla(ExternalProcess):
         """
         print("Restarting Carla")
         self.kill_carla()
-        self.server.restart()
+        self.server.wait()
         self.start()
+
+    def __make_carla_popen(self, proj_path):
+        self.process = subprocess.Popen(
+            [CARLA_PATH + "Carla", self.nogui, proj_path],
+            preexec_fn=os.setsid)
 
     def start(self):
         """
@@ -140,9 +145,7 @@ class Carla(ExternalProcess):
             proj_path = ""
 
         # starting Carla
-        self.process = subprocess.Popen(
-            [CARLA_PATH + "Carla", self.nogui, proj_path],
-            preexec_fn=os.setsid)
+        self.__make_carla_popen(proj_path)
 
         # waiting
         start = time.time()
@@ -154,14 +157,17 @@ class Carla(ExternalProcess):
             if time.time() - start >= self.min_wait and READY:
                 break
             if time.time() - start >= 20:
-                self.restart()
+                self.kill_carla(sign=signal.SIGKILL)
+                self.server.restart()
+                self.__make_carla_popen()
+                start = time.time()
             time.sleep(0.1)
 
-    def kill_carla(self):
+    def kill_carla(self, sign=signal.SIGKILL):
         """
         kill carla, but not the server
         """
-        os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+        os.killpg(os.getpgid(self.process.pid), sign)
 
     def kill(self):
         """

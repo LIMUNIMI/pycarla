@@ -73,14 +73,16 @@ class ExternalProcess:
 
     def kill(self):
         """
-        Just calls `self.process.terminate()` and reset this object
+        Just calls `self.process.kill()` and reset this object
         """
         for i in range(10):
             self.process.kill()
             if self.process.poll():
-                break
+                self.__init__(*self.args)
+                return
             time.sleep(0.5)
-        self.__init__(*self.args)
+
+        raise Exception("Cannot kill a process:", self)
 
     def wait(self):
         """

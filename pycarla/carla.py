@@ -124,7 +124,7 @@ class Carla(ExternalProcess):
         """
         print("Restarting Carla")
         self.kill_carla()
-        self.server.wait()
+        self.server.kill()
         self.start()
 
     def __make_carla_popen(self, proj_path):
@@ -179,7 +179,7 @@ class Carla(ExternalProcess):
             if not self.exists():
                 break
             time.sleep(0.5)
-        self.server.wait()
+        self.server.kill()
 
     def exists(self, ports=["Carla:events*", "Carla:audio*"]):
         """

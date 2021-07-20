@@ -2,9 +2,21 @@ from typing import List
 import shutil
 import time
 
+import psutil
 import jack
 
 from .utils import ExternalProcess, Popen
+
+
+def find_procs_by_name(name):
+    """Return a list of processes matching 'name'."""
+    ls = []
+    for p in psutil.process_iter(["name", "exe", "cmdline"]):
+        if name == p.info['name'] or \
+                p.info['exe'] and os.path.basename(p.info['exe']) == name or \
+                p.info['cmdline'] and p.info['cmdline'][0] == name:
+            ls.append(p)
+    return ls
 
 
 class JackServer(ExternalProcess):
@@ -29,20 +41,22 @@ class JackServer(ExternalProcess):
         """
         Starts the server if not already started
         """
-        if self.process.poll() is not None:
-            self.process = Popen(['jackd'] + self.options)
-            self.freewheel = False
-        self.connect()
+        try:
+            self.connect()
+            self.process = find_procs_by_name('jackd')[0]
+        except jack.JackOpenError:
+            print("Jack server is not running, starting it!")
+            if self.process.is_running():
+                self.process = Popen(['jackd'] + self.options)
+                self.freewheel = False
+            time.sleep(1)
+            self.connect()
 
     def connect(self):
         if not hasattr(self, 'client'):
-            for i in range(10):
-                try:
-                    self.client = jack.Client('pycarla')
-                except Exception:
-                    time.sleep(1)
-            if not hasattr(self, 'client'):
-                raise RuntimeWarning("Cannot connect to Jack server!")
+            self.client = jack.Client('pycarla')
+        if not hasattr(self, 'client'):
+            print("Cannot connect to Jack server!")
 
     def restart(self):
         """

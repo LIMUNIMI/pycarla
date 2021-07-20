@@ -13,6 +13,7 @@ import urllib.request
 
 import mido
 
+import psutil
 from .jackserver import JackServer
 from .utils import ExternalProcess, progressbar
 
@@ -128,7 +129,7 @@ class Carla(ExternalProcess):
         self.start()
 
     def __make_carla_popen(self, proj_path):
-        self.process = subprocess.Popen(
+        self.process = psutil.Popen(
             [CARLA_PATH + "Carla", self.nogui, proj_path],
             preexec_fn=os.setsid)
 
@@ -198,7 +199,7 @@ class Carla(ExternalProcess):
             if not fnmatch.filter(real_ports, port):
                 return False
 
-        if self.process.poll() is not None:
+        if not self.process.is_running():
             return False
 
         return True

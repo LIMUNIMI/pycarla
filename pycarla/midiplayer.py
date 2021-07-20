@@ -329,7 +329,7 @@ PATH")
         if sync:
             _wait_dur(self._duration,
                       progress,
-                      condition=lambda: self.process.poll() is None)
+                      condition=lambda: self.process.is_running())
             self.kill()
         return self.process
 

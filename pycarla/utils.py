@@ -2,6 +2,7 @@ import subprocess
 import sys
 import time
 
+import psutil
 import mido
 
 
@@ -26,12 +27,12 @@ def progressbar(count, block_size, total, status='Download'):
 
 def Popen(command, **args):
     """
-    Custom call to ``subprocess.Popen``
+    Custom call to ``psutil.Popen``
     """
-    return subprocess.Popen(command,
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                            **args)
+    return psutil.Popen(command,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        **args)
 
 
 class FakeProcess:
@@ -45,10 +46,16 @@ class FakeProcess:
     def wait(obj):
         pass
 
-    def poll(obj):
-        return 1
+    def is_running(obj):
+        """
+        from psutil.Process
+        """
+        return False
 
     def is_alive(obj):
+        """
+        from multiprocessing.Process
+        """
         return False
 
     def terminate(obj):
@@ -65,7 +72,6 @@ class ExternalProcess:
     """
     A class for processes with a pre-defined duration
     """
-
     def __init__(self, *args):
         self.process = FakeProcess()
         self._duration = 0
@@ -77,7 +83,7 @@ class ExternalProcess:
         """
         for i in range(10):
             self.process.kill()
-            if self.process.poll():
+            if not self.process.is_running():
                 self.__init__(*self.args)
                 return
             time.sleep(0.5)

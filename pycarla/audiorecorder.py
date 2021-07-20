@@ -8,13 +8,11 @@ import soundfile as sf
 class AudioRecorder():
     AUDIO_PORT = 'Carla'
 
-    def __init__(self, channels=None):
+    def __init__(self):
         """
         Records output from a Carla instance.
 
         For now, only one Carla instance should be active.
-
-        If `channels` is `None`, the maximum value usable for Carla is used
 
         If the Carla instance is not found, this method raises a
         `RuntimeWarning`. To avoid it, use ``Carla.exists`` method. Note that
@@ -24,9 +22,6 @@ class AudioRecorder():
 
         self.recorder = jack.Client("AudioRecorder")
         self.is_active = False
-
-        if channels:
-            self.channels = channels
 
     def deactivate(self):
         """
@@ -78,9 +73,9 @@ class AudioRecorder():
 
         @client.set_process_callback
         def callback(frames):
-            data.append(
-                np.stack([i.get_array() for i in client.inports]))
-
+            channels = [i.get_array() for i in client.inports]
+            if len(channels) > 0:
+                data.append(np.stack(channels))
 
         self._needed_samples = int(duration * self.recorder.samplerate)
 

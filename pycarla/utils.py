@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import time
+import os
 
 import psutil
 import mido
@@ -84,6 +85,9 @@ class FakeProcess:
 
     def status(obj):
         return 'dead'
+
+    def children(obj, *args, **kwargs):
+        return []
 
     def terminate(obj):
         pass

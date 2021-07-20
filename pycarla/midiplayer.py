@@ -89,7 +89,7 @@ class MIDIPlayer():
         dur = min(max_dur, sum(msg.time for msg in messages))
         if sync:
             _wait_dur(dur, progress, condition=self.process.is_alive)
-            self.process.terminate
+            self.process.terminate()
 
         return self.process
 

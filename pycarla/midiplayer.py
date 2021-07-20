@@ -16,26 +16,21 @@ class MIDIPlayer():
 
     MIDI_PORT = 'Carla:events-in*'
 
-    def __init__(self, freewheel=False):
+    def __init__(self):
         """
         Creates a player which is able to connect to a Carla instance
 
-        Optionally, `freewheel` cab be used to start freeewheel mode before of
+        Optionally, `freewheel` can be used to start freeewheel mode before of
         playing.
 
         For now, only one Carla instance should be active.
         """
         super().__init__()
         self.connected = False
-        self.freewheel = freewheel
-        self._is_freewheel = False
 
     def _setup(self):
         self.client = jack.Client('pycarla-midiplayer')
         self.port = self.client.midi_outports.register('output')
-        if self._is_freewheel != self.freewheel:
-            self.client.set_freewheel(self.freewheel)
-            self._is_freewheel = self.freewheel
 
     def _update_port(self):
         real_ports = [port.name for port in self.client.get_ports()]

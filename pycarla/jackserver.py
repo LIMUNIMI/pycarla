@@ -1,22 +1,12 @@
 from typing import List
 import shutil
 import time
+import os
 
 import psutil
 import jack
 
-from .utils import ExternalProcess, Popen
-
-
-def find_procs_by_name(name):
-    """Return a list of processes matching 'name'."""
-    ls = []
-    for p in psutil.process_iter(["name", "exe", "cmdline"]):
-        if name == p.info['name'] or \
-                p.info['exe'] and os.path.basename(p.info['exe']) == name or \
-                p.info['cmdline'] and p.info['cmdline'][0] == name:
-            ls.append(p)
-    return ls
+from .utils import ExternalProcess, Popen, find_procs_by_name, kill_psutil_process
 
 
 class JackServer(ExternalProcess):
@@ -44,13 +34,20 @@ class JackServer(ExternalProcess):
         try:
             self.connect()
             self.process = find_procs_by_name('jackd')[0]
-        except jack.JackOpenError:
+        except jack.JackOpenError as e:
             print("Jack server is not running, starting it!")
-            if self.process.is_running():
+            if not self.process.is_running():
                 self.process = Popen(['jackd'] + self.options)
-                self.freewheel = False
+            else:
+                raise e
             time.sleep(1)
             self.connect()
+
+        try:
+            self.client.set_freewheel(False)
+        except Exception:
+            pass
+        self.freewheel = False
 
     def connect(self):
         if not hasattr(self, 'client'):
@@ -75,4 +72,5 @@ class JackServer(ExternalProcess):
 
     def kill(self):
         self.client.close()
+        kill_psutil_process(self.process)
         super().kill()

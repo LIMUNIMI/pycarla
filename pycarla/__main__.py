@@ -13,14 +13,13 @@ import numpy as np
 from . import AudioRecorder, Carla, JackServer, MIDIPlayer, get_smf_duration
 
 FINAL_DECAY = 4
-blocksize = 1024
-server = JackServer(['-R', '-d', 'alsa', '-p', str(blocksize)])
-carla = Carla("carla_proj/pianoteq0.carxp", server, min_wait=4)
+server = JackServer(['-R', '-d', 'alsa', '-p', '1024'])
+carla = Carla("../../carla_proj/pianoteq0.carxp", server, min_wait=4)
 carla.start()
 
 filename = sys.argv[1]
-player = MIDIPlayer(False)
-recorder = AudioRecorder(blocksize-blocksize)
+player = MIDIPlayer()
+recorder = AudioRecorder()
 
 # testing one note
 # print("Playing and recording one note in real-time mode..")
@@ -35,22 +34,16 @@ recorder = AudioRecorder(blocksize-blocksize)
 #     carla.kill()
 #     sys.exit()
 
-# computing pitch from audio
-# print(f"Detecting pitch (correct one is {pitch})...")
-# pitch, confidence = esst.PitchYin(sampleRate=recorder.samplerate)(es.array(
-#     np.mean(audio, axis=1)))
-# pitch = 69 + 12 * np.log2(pitch/440)
-# print(f"Detected pitch: {pitch}, {confidence}")
-
 # testing full midi file
-player = MIDIPlayer(True)
+player = MIDIPlayer()
 print("Playing and recording full file in freewheeling mode..")
 duration = get_smf_duration(filename)
 recorder.start(duration + FINAL_DECAY, sync=False)
-player.synthesize_midi_file(filename, sync=True, progress=False)
+server.toggle_freewheel()
+player.synthesize_midi_file(filename, sync=True, progress=True)
 recorder.wait()
+server.toggle_freewheel()
 recorder.save_recorded("session.wav")
-server.kill()
 carla.kill()
 
 # playing wav file

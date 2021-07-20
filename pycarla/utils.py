@@ -34,6 +34,30 @@ def Popen(command, **args):
                         stderr=subprocess.DEVNULL,
                         **args)
 
+def kill_psutil_process(process):
+    """
+    Kills a tree of `psutil.Process`
+    """
+
+    children = process.children(recursive=True)
+    children.append(process)
+    for p in children:
+        try:
+            p.kill()
+        except psutil.NoSuchProcess:
+            pass
+
+
+def find_procs_by_name(name):
+    """Return a list of processes matching 'name'."""
+    ls = []
+    for p in psutil.process_iter(["name", "exe", "cmdline"]):
+        if name == p.info['name'] or \
+                p.info['exe'] and os.path.basename(p.info['exe']) == name or \
+                p.info['cmdline'] and p.info['cmdline'][0] == name:
+            ls.append(p)
+    return ls
+
 
 class FakeProcess:
     """
@@ -57,6 +81,9 @@ class FakeProcess:
         from multiprocessing.Process
         """
         return False
+
+    def status(obj):
+        return 'dead'
 
     def terminate(obj):
         pass
@@ -83,7 +110,7 @@ class ExternalProcess:
         """
         for i in range(10):
             self.process.kill()
-            if not self.process.is_running():
+            if not self.process.is_running() or self.process.status() == 'zombie':
                 self.__init__(*self.args)
                 return
             time.sleep(0.5)

@@ -15,7 +15,7 @@ import mido
 
 import psutil
 from .jackserver import JackServer
-from .utils import ExternalProcess, progressbar
+from .utils import ExternalProcess, FakeProcess, progressbar, kill_psutil_process
 
 version = "2.1"
 
@@ -94,6 +94,7 @@ class Carla(ExternalProcess):
         `nogui` is False if you want to use the gui
         """
         super().__init__()
+
         self.proj_path = proj_path
         self.server = server
         self.min_wait = min_wait
@@ -164,16 +165,15 @@ class Carla(ExternalProcess):
                 start = time.time()
             time.sleep(0.1)
 
-    def kill_carla(self, sign=signal.SIGKILL):
+    def kill_carla(self):
         """
         kill carla, but not the server
         """
-        os.killpg(os.getpgid(self.process.pid), sign)
+        kill_psutil_process(self.process)
 
     def kill(self):
         """
-        kill carla and wait for the server (the duration of the server must be
-        set, otherwise it doesn't return)
+        kill carla and wait for the server
         """
         for i in range(10):
             self.kill_carla()
@@ -200,6 +200,11 @@ class Carla(ExternalProcess):
                 return False
 
         if not self.process.is_running():
+            return False
+
+        if self.process.status() == 'zombie':
+            print("Warning! Carla is Zombie!")
+            self.process = FakeProcess()
             return False
 
         return True

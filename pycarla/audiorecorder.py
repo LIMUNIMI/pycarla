@@ -1,70 +1,66 @@
 import time
 
+import jack
 import numpy as np
-import sounddevice as sd
 import soundfile as sf
 
 
 class AudioRecorder():
-    AUDIO_PORT = 'carla'
+    AUDIO_PORT = 'Carla'
 
-    def __init__(self,
-                 channels=None,
-                 samplerate=None,
-                 dtype='float32',
-                 blocksize=1024):
+    def __init__(self, channels=None):
         """
         Records output from a Carla instance.
 
         For now, only one Carla instance should be active.
 
-        Uses ``sounddevice`` module, refer to it for more info about
-        parameters.
+        If `channels` is `None`, the maximum value usable for Carla is used
 
-        If `channels` and `samplerate` are not used, the maximum value usable
-        for Carla is used (samplerate is usually set by jack server...)
-
-        If the Carla instance is not found, this method rase a
+        If the Carla instance is not found, this method raises a
         `RuntimeWarning`. To avoid it, use ``Carla.exists`` method. Note that
         ``Carla.start`` already does that!
         """
         super().__init__()
 
-        # make newer jack and carla instances visible to sounddevice and jack:
-        sd._exit_handler()
-        sd._initialize()
+        self.recorder = jack.Client("AudioRecorder")
+        self.is_active = False
 
-        self.get_default_params()
         if channels:
             self.channels = channels
-        if samplerate:
-            self.samplerate = samplerate
-        self.dtype = dtype
-        self.blocksize = blocksize
-        sd.default.device = self.AUDIO_PORT
 
-    def get_default_params(self):
+    def deactivate(self):
         """
-        Set channels and samplerate according to the default paramters of the
-        device.
+        Deactivates the client and unregisters all input ports
+        """
+        self.recorder.deactivate()
+        self.recorder.inports.clear()
+        self.is_active = False
+
+    def activate(self):
+        """
+        Activate the recording client and set the connections.
+        Set self.channels and create one input port per each Carla output port.
 
         If the Carla instance is not found, this method rase a
         `RuntimeWarning`. To avoid it, use ``Carla.exists`` method. Note that
         ``Carla.start`` already does that!
         """
         # get default values and params
-        devicelist = sd.query_devices()
-        found = False
-        for device in devicelist:
-            if self.AUDIO_PORT in device['name'].lower():
-                found = True
-                self.channels = device['max_output_channels']
-                self.samplerate = device['default_samplerate']
+        ports = self.recorder.get_ports(self.AUDIO_PORT,
+                                        is_audio=True,
+                                        is_output=True)
 
-        if not found:
+        if len(ports) == 0:
             raise RuntimeWarning(
                 "Cannot find the Carla instance, Retry later!")
-        sd.default.device = self.AUDIO_PORT
+        self.channels = len(ports)
+        self.ports = []
+        self.recorder.activate()
+        for i, p in enumerate(ports):
+            inp = self.recorder.inports.register(f"in{i}")
+            self.recorder.connect(p, inp)
+            self.ports.append(inp)
+        self.is_active = True
 
     def start(self, duration, sync=False):
         """
@@ -76,21 +72,19 @@ class AudioRecorder():
         This function is compatible with Jack freewheeling mode to record
         offline sessions.
         """
-        global callback, data
+        global callback, data, client
         data = []
+        client = self.recorder
 
-        def callback(indata, frames, time, status):
-            data.append(indata.copy())
+        @client.set_process_callback
+        def callback(frames):
+            data.append(
+                np.stack([i.get_array() for i in client.inports]))
 
-        self.stream = sd.InputStream(blocksize=self.blocksize,
-                                     channels=self.channels,
-                                     samplerate=self.samplerate,
-                                     dtype=self.dtype,
-                                     callback=callback)
-        self.stream = self.stream.__enter__()
-        self._needed_blocks = int(
-            duration * self.samplerate / self.blocksize)
 
+        self._needed_samples = int(duration * self.recorder.samplerate)
+
+        self.activate()
         if sync:
             self.wait()
 
@@ -100,21 +94,25 @@ class AudioRecorder():
         be the maximum number of seconds until which the recording stops. A
         boolean is returned representing if timeout is reached.
         (returns `False` if timeout is not set)
+
+        The recording stops when `timeout` or the duration passed when calling
+        `start` is reached. In these cases, the recording client is deactivated
+        and the callback stopped.
         """
         reached_timeout = False
-        if hasattr(self, 'stream'):
+        if self.is_active:
             global data
             # wait the needed number of blocks
             ttt = time.time()
-            while len(data) < self._needed_blocks:
+            while sum(i.shape[1] for i in data) < self._needed_samples:
                 if timeout is not None:
                     if time.time() - ttt > timeout:
                         reached_timeout = True
                         break
-                time.sleep(0.0001)
-            self.stream = self.stream.__exit__()
-            self.recorded = np.concatenate(data, axis=0)
-            del data, self.stream
+                time.sleep(0.001)
+            self.deactivate()
+            self.recorded = np.concatenate(data, axis=1)
+            del data
         return reached_timeout
 
     def save_recorded(self, filename):
@@ -126,4 +124,12 @@ class AudioRecorder():
         if not hasattr(self, 'recorded'):
             raise RuntimeError("No recorded array!")
 
-        sf.write(filename, self.recorded, int(self.samplerate))
+        recorded = self.recorded.T
+        sf.write(filename, recorded, int(self.recorder.samplerate))
+
+    def close(self):
+        """
+        Just deactivate and closes the recording client
+        """
+        self.deactivate()
+        self.recorder.close()

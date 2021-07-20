@@ -32,8 +32,7 @@ virtual instruments thanks to the excellent Carla:
 TODO
 ----
 
-#. Remove sounddevice dependency in `AudioRecorder` (use jack instead)
-#. Detect Carla zombie process or
+#. Add single function to synthesize midi and notes
 #. Use Carla python code to control Carla host
 #. Update Carla
 #. Support LADISH sessions for automatically starting LinuxSampler if needed

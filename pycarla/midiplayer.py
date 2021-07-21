@@ -24,7 +24,7 @@ class MIDIPlayer(JackClient):
         For now, only one Carla instance should be active.
         """
         super().__init__("MIDIPlayer")
-        self.started = threading.Event()
+        self.ready = threading.Event()
 
     def activate(self):
         """
@@ -56,7 +56,8 @@ class MIDIPlayer(JackClient):
                             messages: List[mido.Message],
                             sync=False,
                             progress=False,
-                            max_dur=1e15):
+                            max_dur=1e15,
+                            condition=lambda: True):
         """
         Synthesize a list of messages
 
@@ -89,29 +90,37 @@ class MIDIPlayer(JackClient):
         msg = next(it)
         offset = 0
         self.end_midiplayer = threading.Event()
+        self.started = False
 
         @self.client.set_process_callback
         def process(frames):
             if self.is_active:
                 global offset, msg
                 for port in self.client.midi_outports:
-                    if not self.started.is_set():
-                        self.started.set()
-                    port.clear_buffer()
-                    while True:
+                    if not self.ready.is_set():
+                        # let other clients know that this is ready
+                        self.ready.set()
+                    elif condition():
+                        # start only if also other clients are ready
+                        # and at the next cycle
+                        if not self.started:
+                            self.started = True
+                            break
+                        port.clear_buffer()
+                        while True:
 
-                        if offset >= frames:
-                            # wait for the correct block
-                            offset -= frames
-                            return
-                        # Note: This may raise an exception:
-                        port.write_midi_event(offset, msg.bytes())
+                            if offset >= frames:
+                                # wait for the correct block
+                                offset -= frames
+                                return
+                            # Note: This may raise an exception:
+                            port.write_midi_event(offset, msg.bytes())
 
-                        try:
-                            msg = next(it)
-                        except StopIteration:
-                            self.end_midiplayer.set()
-                        offset += round(msg.time * self.client.samplerate)
+                            try:
+                                msg = next(it)
+                            except StopIteration:
+                                self.end_midiplayer.set()
+                            offset += round(msg.time * self.client.samplerate)
 
         dur = min(max_dur, sum(msg.time for msg in messages))
         self.activate()

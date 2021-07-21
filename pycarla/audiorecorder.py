@@ -1,4 +1,5 @@
 import time
+import threading
 
 import numpy as np
 import soundfile as sf
@@ -20,6 +21,7 @@ class AudioRecorder(JackClient):
         ``Carla.start`` already does that!
         """
         super().__init__("AudioRecorder")
+        self.ready = threading.Event()
 
     def activate(self):
         """
@@ -63,12 +65,22 @@ class AudioRecorder(JackClient):
         """
         global callback
         self.recorded = []
+        self.started = False
 
         @self.client.set_process_callback
         def callback(frames):
             channels = [i.get_array() for i in self.client.inports]
-            if len(channels) == self.channels and condition():
-                self.recorded.append(np.stack(channels))
+            if len(channels) == self.channels:
+                if not self.ready.is_set():
+                    # let other clients know that this is ready
+                    self.ready.set()
+                elif condition():
+                    # start only if also other clients are ready
+                    # and at the next cycle
+                    if not self.started:
+                        self.started = True
+                    else:
+                        self.recorded.append(np.stack(channels))
 
         if duration is not None:
             self._needed_samples = int(duration * self.client.samplerate)

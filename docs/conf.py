@@ -40,8 +40,8 @@ templates_path = ['_templates']
 
 # mock modules that need unsatisfiable dependencies on readthedocs
 autodoc_mock_imports = [
-    "soundfile", "jack", "essentia", "mido", "python-rtmidi", "sounddevice",
-    "numpy"
+    "soundfile", "jack", "essentia", "mido", "python-rtmidi",
+    "numpy", "psutil"
 ]
 
 # -- Options for HTML output -------------------------------------------------

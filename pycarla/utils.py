@@ -3,6 +3,7 @@ import sys
 import time
 import os
 
+import jack
 import psutil
 import mido
 
@@ -35,6 +36,7 @@ def Popen(command, **args):
                         stderr=subprocess.DEVNULL,
                         **args)
 
+
 def kill_psutil_process(process):
     """
     Kills a tree of `psutil.Process`
@@ -58,6 +60,39 @@ def find_procs_by_name(name):
                 p.info['cmdline'] and p.info['cmdline'][0] == name:
             ls.append(p)
     return ls
+
+
+class JackClient:
+    def __init__(self, name):
+        self.client = jack.Client(name)
+        self.is_active = False
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        if isinstance(exc_type, Exception):
+            print(exc_tb)
+
+    def deactivate(self):
+        """
+        Deactivates the client and unregisters all input ports
+        """
+        if self.is_active:
+            self.client.deactivate()
+            self.client.inports.clear()
+            self.client.outports.clear()
+            self.client.midi_inports.clear()
+            self.client.midi_outports.clear()
+            self.is_active = False
+
+    def close(self):
+        self.deactivate()
+        self.client.close()
+
+    def activate(self):
+        raise NotImplementedError("Abstract method")
 
 
 class FakeProcess:
@@ -114,7 +149,8 @@ class ExternalProcess:
         """
         for i in range(10):
             self.process.kill()
-            if not self.process.is_running() or self.process.status() == 'zombie':
+            if not self.process.is_running() or self.process.status(
+            ) == 'zombie':
                 self.__init__(*self.args)
                 return
             time.sleep(0.5)

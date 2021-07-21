@@ -1,20 +1,18 @@
-import fnmatch
 import multiprocessing
 import os
-import shutil
 import threading
+import shutil
 import time
 from typing import Any, List, Union
 
-import jack
 import mido
 
-from .utils import ExternalProcess, Popen, get_smf_duration, progressbar
+from .utils import ExternalProcess, Popen, JackClient, get_smf_duration, progressbar
 
 
-class MIDIPlayer():
+class MIDIPlayer(JackClient):
 
-    MIDI_PORT = 'Carla:events-in*'
+    MIDI_PORT = 'Carla'
 
     def __init__(self):
         """
@@ -25,43 +23,45 @@ class MIDIPlayer():
 
         For now, only one Carla instance should be active.
         """
-        super().__init__()
-        self.connected = False
+        super().__init__("MIDIPlayer")
+        self.started = threading.Event()
 
-    def _setup(self):
-        self.client = jack.Client('pycarla-midiplayer')
-        self.port = self.client.midi_outports.register('output')
+    def activate(self):
+        """
+        Activate the MIDI player client and set the connections.
 
-    def _update_port(self):
-        real_ports = [port.name for port in self.client.get_ports()]
-        for port in real_ports:
-            if fnmatch.fnmatch(port, self.MIDI_PORT):
-                if not self.connected or not self.port.is_connected_to(port):
-                    try:
-                        self.port.connect(port)
-                    except Exception:
-                        print("Cannot connect to Carla. Is the client active?")
-                        self.connected = False
-                    else:
-                        self.connected = True
+        If the Carla instance is not found, this method rase a
+        `RuntimeWarning`. To avoid it, use ``Carla.exists`` method. Note that
+        ``Carla.start`` already does that!
+        """
+        carla_ports = self.client.get_ports(self.MIDI_PORT,
+                                            is_midi=True,
+                                            is_input=True)
+        if len(carla_ports) != 1:
+            raise RuntimeWarning(
+                "Cannot find the Carla instance, Retry later!")
+        self.client.activate()
+        self.client.midi_outports.clear()
+        self.port = self.client.midi_outports.register('out')
+        if not self.port.is_connected_to(carla_ports[0]):
+            self.client.connect(self.port, carla_ports[0])
+        self.is_active = True
 
     def wait(self):
-        if hasattr(self, 'process'):
-            self.process.join()
+        if hasattr(self, 'end_midiplayer'):
+            self.end_midiplayer.wait()
+        self.deactivate()
 
     def synthesize_messages(self,
                             messages: List[mido.Message],
                             sync=False,
                             progress=False,
-                            max_dur=1e15) -> multiprocessing.Process:
+                            max_dur=1e15):
         """
         Synthesize a list of messages
 
-        1. Create a jack client if not yet done
-        2. Connect the port of this jack client to Carla if not yet done
-        3. Send the list of messages to the Carla instance
-
-        The process happens in a separate process saved in `self.process`
+        1. Connect the port of this jack client to Carla if not yet done
+        2. Send the list of messages to the Carla instance
 
         If `sync` is True, this function waits until all messages have been
         processed, otherwise, it suddenly returns. You can wait by calling the
@@ -76,61 +76,51 @@ class MIDIPlayer():
         jack from waiting between return calls. This allows for the maximum
         allowed speed, but not output/input operation is done with system audio
         (i.e. you cannot listen/recording to anything while in freewheeling
-        mode)
+        mode).
 
         Note: Mido numbers channels 0 to 15 instead of 1 to 16. This makes them
         easier to work with in Python but you may want to add and subtract 1
         when communicating with the user.
         """
         self._messages = messages
-        self.process = multiprocessing.Process(target=self._play)
-        self.process.start()
-
-        dur = min(max_dur, sum(msg.time for msg in messages))
-        if sync:
-            _wait_dur(dur, progress, condition=self.process.is_alive)
-            self.process.terminate()
-
-        return self.process
-
-    def _play(self):
-        event = threading.Event()
-        self._setup()
 
         global msg, offset
         it = iter(self._messages)
         msg = next(it)
         offset = 0
+        self.end_midiplayer = threading.Event()
 
         @self.client.set_process_callback
         def process(frames):
-            global offset, msg
-            self.port.clear_buffer()
-            while True:
+            if self.is_active:
+                global offset, msg
+                for port in self.client.midi_outports:
+                    if not self.started.is_set():
+                        self.started.set()
+                    port.clear_buffer()
+                    while True:
 
-                if offset >= frames:
-                    # wait for the correct block
-                    offset -= frames
-                    return
-                # Note: This may raise an exception:
-                self.port.write_midi_event(offset, msg.bytes())
+                        if offset >= frames:
+                            # wait for the correct block
+                            offset -= frames
+                            return
+                        # Note: This may raise an exception:
+                        port.write_midi_event(offset, msg.bytes())
 
-                try:
-                    msg = next(it)
-                except StopIteration:
-                    event.set()
-                    raise jack.CallbackExit
-                offset += round(msg.time * fs)
+                        try:
+                            msg = next(it)
+                        except StopIteration:
+                            self.end_midiplayer.set()
+                        offset += round(msg.time * self.client.samplerate)
 
-        @self.client.set_samplerate_callback
-        def samplerate(sr):
-            global fs
-            fs = sr
-
-        with self.client:
-            # cannot connect if it's not active and running the callback...
-            self._update_port()
-            event.wait()
+        dur = min(max_dur, sum(msg.time for msg in messages))
+        self.activate()
+        if sync:
+            _wait_dur(dur,
+                      progress,
+                      condition=lambda: not self.end_midiplayer.is_set())
+            self.end_midiplayer.set()
+            self.deactivate()
 
     def synthesize_midi_note(self,
                              pitch: int,

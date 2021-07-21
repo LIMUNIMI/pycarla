@@ -47,12 +47,13 @@ Playing and recording a full MIDI file
     duration = get_smf_duration("filename.mid")
     # in the following, `condition` ensures that both the recorder and player
     # start in the same cycle
-    recorder.start(duration + FINAL_DECAY, condition=player.started.is_set)
+    recorder.start(duration + FINAL_DECAY, condition=player.ready.is_set)
     # toggle freewheel must be after recorder started
     # and before waiting: since here we're using `sync=True`, we
     # also need to set freewheel here
     server.toggle_freewheel()
-    player.synthesize_midi_file("filename.mid", sync=True, progress=False)
+    player.synthesize_midi_file("filename.mid", sync=True,
+        condition=recorder.ready.is_set)
     # or asynchronously:
     # player.synthesize_midi_file("filename.mid", sync=False)
     # in this case, use

@@ -32,7 +32,7 @@ class JackServer(ExternalProcess):
         try:
             self.connect()
             self.process = find_procs_by_name('jackd')[0]
-        except jack.JackOpenError as e:
+        except (IndexError, jack.JackOpenError) as e:
             print("Jack server is not running, starting it!")
             if not self.process.is_running():
                 self.process = Popen(['jackd'] + self.options)

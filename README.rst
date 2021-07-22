@@ -36,6 +36,8 @@ For sure
 #. Add single function to batch-synthesize midi files
 #. Make synchronization handling xruns (edit `is_ready`)
 #. Update Carla
+#. refactoring with a generic `start` method in `JackClient` and 
+   specific methods `get_callback` and `get_duration`
 
 Maybe
 ~~~~~

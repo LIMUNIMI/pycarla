@@ -46,17 +46,29 @@ class MIDIPlayer(JackClient):
             self.client.connect(self.port, carla_ports[0])
         self.is_active = True
 
-    def wait(self):
+    def wait(self, in_fw=False, out_fw=False):
+        """
+        waits while setting freewheeling mode to `in_fw`
+        it then set freewheeling mode to `out_fw` before exiting
+        """
         if hasattr(self, 'end_midiplayer'):
+            self.client.set_freewheel(in_fw)
             self.end_midiplayer.wait()
+            self.client.set_freewheel(out_fw)
         self.deactivate()
+
+    def clear(self):
+        """
+        clears the `_messages` list
+        """
+        del self._messages
+        self._messages = []
 
     def synthesize_messages(self,
                             messages: List[mido.Message],
                             sync=False,
-                            progress=False,
-                            max_dur=1e15,
-                            condition=lambda: True):
+                            condition=lambda: True,
+                            **kwargs):
         """
         Synthesize a list of messages
 
@@ -67,16 +79,17 @@ class MIDIPlayer(JackClient):
         processed, otherwise, it suddenly returns. You can wait by calling the
         `wait` method of this object.
 
-        If `progress` is True, a bar is printed showing the progress of the
-        synthesis. If `sync` is False, `progress` is not used.
-
-        `max_dur` is the maximum time for after which messages are discarded
-
         This function is compatible with freewheeling mode.  Freewheel prevents
         jack from waiting between return calls. This allows for the maximum
         allowed speed, but not output/input operation is done with system audio
         (i.e. you cannot listen/recording to anything while in freewheeling
         mode).
+
+        `condition` is a function checked in the playing callback. If
+        `condition()` is False, no message is sent. The callback start playing
+        at the cycle after the one in which `condition()` becomes True.
+
+        `kwargs` are passed to `wait` if `sync` is True.
 
         Note: Mido numbers channels 0 to 15 instead of 1 to 16. This makes them
         easier to work with in Python but you may want to add and subtract 1
@@ -89,7 +102,7 @@ class MIDIPlayer(JackClient):
         msg = next(it)
         offset = 0
         self.end_midiplayer = threading.Event()
-        self.started = False
+        self.ready_at = -1
 
         @self.client.set_process_callback
         def process(frames):
@@ -118,14 +131,9 @@ class MIDIPlayer(JackClient):
                                 self.end_midiplayer.set()
                             offset += round(msg.time * self.client.samplerate)
 
-        dur = min(max_dur, sum(msg.time for msg in messages))
         self.activate()
         if sync:
-            _wait_dur(dur,
-                      progress,
-                      condition=lambda: not self.end_midiplayer.is_set())
-            self.end_midiplayer.set()
-            self.deactivate()
+            self.wait(**kwargs)
 
     def synthesize_midi_note(self,
                              pitch: int,

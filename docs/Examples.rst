@@ -48,19 +48,13 @@ Playing and recording a full MIDI file
     # in the following, `condition` ensures that both the recorder and player
     # start in the same cycle
     recorder.start(duration + FINAL_DECAY, condition=player.is_ready)
-    # toggle freewheel must be after recorder started
-    # and before waiting: since here we're using `sync=True`, we
-    # also need to set freewheel here
-    server.toggle_freewheel()
-    player.synthesize_midi_file("filename.mid", sync=True,
-        condition=recorder.is_ready)
+    player.synthesize_midi_file("filename.mid",
+        condition=recorder.is_ready, in_fw=True, out_fw=True)
     # or asynchronously:
     # player.synthesize_midi_file("filename.mid", sync=False)
     # in this case, use
-    # server.toggle_freewheel() # but remove the previous one...
-    # player.wait()
-    recorder.wait()
-    server.toggle_freewheel()
+    # player.wait(in_fw=True, out_fw=True)
+    recorder.wait(in_fw=True, out_fw=True)
     recorder.save_recorded("session.wav")
     player.close()
     server.close()
@@ -68,7 +62,7 @@ Playing and recording a full MIDI file
 In future, there shold be a function that does this snippet for you
 
 You can also use ``AudioRecorder`` and ``MIDIPlayer`` as context managers in a
-``with`` block; in this case, skip the `close()` at the end.
+``with`` block; in this case, skip the `close()` at the end:
 
 .. code-block:: python
 

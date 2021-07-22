@@ -1,6 +1,5 @@
 import multiprocessing
 import os
-import threading
 import shutil
 import time
 from typing import Any, List, Union
@@ -46,17 +45,6 @@ class MIDIPlayer(JackClient):
             self.client.connect(self.port, carla_ports[0])
         self.is_active = True
 
-    def wait(self, in_fw=False, out_fw=False):
-        """
-        waits while setting freewheeling mode to `in_fw`
-        it then set freewheeling mode to `out_fw` before exiting
-        """
-        if hasattr(self, 'end_midiplayer'):
-            self.set_freewheel(in_fw)
-            self.end_midiplayer.wait()
-            self.set_freewheel(out_fw)
-        self.deactivate()
-
     def clear(self):
         """
         clears the `_messages` list
@@ -101,7 +89,6 @@ class MIDIPlayer(JackClient):
         it = iter(self._messages)
         msg = next(it)
         offset = 0
-        self.end_midiplayer = threading.Event()
         self.ready_at = -1
 
         @self.client.set_process_callback
@@ -128,7 +115,7 @@ class MIDIPlayer(JackClient):
                             try:
                                 msg = next(it)
                             except StopIteration:
-                                self.end_midiplayer.set()
+                                self.end_wait.set()
                             offset += round(msg.time * self.client.samplerate)
 
         self.activate()

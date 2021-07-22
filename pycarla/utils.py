@@ -1,3 +1,4 @@
+import threading
 import subprocess
 import sys
 import time
@@ -67,6 +68,18 @@ class JackClient:
         self.client = jack.Client(name)
         self.is_active = False
         self.ready_at = -1
+        self.end_wait = threading.Event()
+        self.error = False
+
+        global client_unregister_callback
+
+        # a simple callback that ends the processing if
+        # carla disconnects
+        @self.client.set_client_registration_callback
+        def client_unregister_callback(name, register):
+            if 'carla' in name.lower() and not register:
+                self.end_wait.set()
+                self.error = True
 
     def is_ready(self):
         """
@@ -125,12 +138,21 @@ class JackClient:
     def activate(self):
         raise NotImplementedError("Abstract method")
 
-    def wait(self, in_fw=False, out_fw=False):
+    def wait(self, timeout=None, in_fw=False, out_fw=False):
         """
         waits while setting freewheeling mode to `in_fw`
         it then set freewheeling mode to `out_fw` before exiting
+
+        if `timeout` is a number, it waits but exits if `timeout` is reached
+        and returns False in that case, otherwise, True
         """
-        raise NotImplementedError("Abstract method")
+        out = True
+        if hasattr(self, 'end_wait'):
+            self.set_freewheel(in_fw)
+            out = self.end_wait.wait(timeout)
+            self.set_freewheel(out_fw)
+        self.deactivate()
+        return out and self.error
 
 
 class FakeProcess:

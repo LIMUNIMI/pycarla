@@ -1,3 +1,4 @@
+import threading
 import time
 
 import numpy as np
@@ -79,6 +80,13 @@ class AudioRecorder(JackClient):
         global callback
         self.recorded = []
         self.ready_at = -1
+        self.end_wait = threading.Event()
+
+        if duration is not None:
+            self._needed_samples = int(duration * self.client.samplerate)
+        else:
+            # values <= 0 causes the `end_wait` never being set
+            self._needed_samples = -1
 
         @self.client.set_process_callback
         def callback(frames):
@@ -91,12 +99,11 @@ class AudioRecorder(JackClient):
                 elif condition():
                     # start only if other clients are ready too
                     self.recorded.append(np.stack(channels))
-
-        if duration is not None:
-            self._needed_samples = int(duration * self.client.samplerate)
-        else:
-            # values <= 0 cause the wait to hang until `timeout`
-            self._needed_samples = -1
+                    if self._needed_samples > 0:
+                        recorded_frames = sum(i.shape[1]
+                                              for i in self.recorded)
+                        if recorded_frames < self._needed_samples:
+                            self.end_wait.set()
 
         self.activate()
         if sync:
@@ -117,31 +124,15 @@ class AudioRecorder(JackClient):
         it then set freewheeling mode to `out_fw` before exiting
         """
         assert timeout is not None or self._needed_samples > 0, "Please, provide one between`timeout` and `duration`"
-        reached_timeout = False
-        if self.is_active:
-            self.set_freewheel(in_fw)
-            # wait the needed number of blocks
-            ttt = time.time()
-            CONTINUE = True
-            while CONTINUE:
-                if timeout is not None:
-                    if time.time() - ttt > timeout:
-                        reached_timeout = True
-                        break
-                time.sleep(0.001)
-                if self._needed_samples > 0:
-                    recorded_frames = sum(i.shape[1] for i in self.recorded)
-                    CONTINUE = recorded_frames < self._needed_samples
-
-            self.set_freewheel(out_fw)
-            self.deactivate()
+        out = super().wait(timeout, in_fw, out_fw)
+        if len(self.recorded) > 0:
             try:
                 self.recorded = np.concatenate(self.recorded, axis=1)
             except Exception:
                 print(
                     "Cannot concatenate the recorded blocks in one array, have you changed the number of channels while recording? In the `AudioRecorder.recorded` you will find the list of recorded blocks"
                 )
-        return reached_timeout
+        return out
 
     def save_recorded(self, filename):
         """

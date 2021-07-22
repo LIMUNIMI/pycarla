@@ -113,6 +113,15 @@ class Carla(ExternalProcess):
                     "Carla seems not to be installed. Download it and put the \
 ``Carla`` command in your path.")
 
+        global carla_unregister_callback
+
+        # a simple callback that restart carla if
+        # carla disconnects
+        @self.server.client.set_client_registration_callback
+        def carla_unregister_callback(name, register):
+            if not self.exists():
+                self.restart_carla()
+
     def restart_carla(self):
         """
         Only restarts Carla, not the Jack server!

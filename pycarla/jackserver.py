@@ -1,9 +1,7 @@
 from typing import List
 import shutil
 import time
-import os
 
-import psutil
 import jack
 
 from .utils import ExternalProcess, Popen, find_procs_by_name, kill_psutil_process
@@ -43,12 +41,6 @@ class JackServer(ExternalProcess):
             time.sleep(1)
             self.connect()
 
-        try:
-            self.client.set_freewheel(False)
-        except Exception:
-            pass
-        self.freewheel = False
-
     def connect(self):
         if not hasattr(self, 'client'):
             self.client = jack.Client('pycarla')
@@ -65,10 +57,6 @@ class JackServer(ExternalProcess):
 
     def get_ports(self) -> List[str]:
         return [port.name for port in self.client.get_ports()]
-
-    def toggle_freewheel(self):
-        self.client.set_freewheel(not self.freewheel)
-        self.freewheel = not self.freewheel
 
     def kill(self):
         self.client.close()

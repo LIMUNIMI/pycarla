@@ -1,5 +1,4 @@
 import time
-import threading
 
 import numpy as np
 import soundfile as sf
@@ -49,7 +48,18 @@ class AudioRecorder(JackClient):
             self.ports.append(inp)
         self.is_active = True
 
-    def start(self, duration=None, sync=False, condition=lambda: True):
+    def clear(self):
+        """
+        Clears the `recorded` array
+        """
+        del self.recorded
+        self.recorded = []
+
+    def start(self,
+              duration=None,
+              sync=False,
+              condition=lambda: True,
+              **kwargs):
         """
         Record audio for ``duration`` seconds. Note that this function blocks
         if `sync` is True, otherwise, this returns suddenly and you
@@ -57,14 +67,18 @@ class AudioRecorder(JackClient):
         constructs the recorded array in `self.recorded`
 
         `condition` is a function checked in the recording callback. If
-        `condition()` is False, blocks are discarded.
+        `condition()` is False, blocks are discarded. The callback start
+        recording at the cycle after the one in which `condition()` becomes
+        True.
 
         This function is compatible with Jack freewheeling mode to record
         offline sessions.
+
+        `kwargs` are passed to `wait` if `sync` is True.
         """
         global callback
         self.recorded = []
-        self.started = False
+        self.ready_at = -1
 
         @self.client.set_process_callback
         def callback(frames):
@@ -86,9 +100,9 @@ class AudioRecorder(JackClient):
 
         self.activate()
         if sync:
-            self.wait()
+            self.wait(**kwargs)
 
-    def wait(self, timeout=None):
+    def wait(self, timeout=None, in_fw=False, out_fw=False):
         """
         Wait until recording is finished. If `timeout` is a number, it should
         be the maximum number of seconds until which the recording stops. A
@@ -98,10 +112,14 @@ class AudioRecorder(JackClient):
         The recording stops when `timeout` or the duration passed when calling
         `start` is reached. In these cases, the recording client is deactivated
         and the callback stopped.
+
+        waits while setting freewheeling mode to `in_fw`
+        it then set freewheeling mode to `out_fw` before exiting
         """
         assert timeout is not None or self._needed_samples > 0, "Please, provide one between`timeout` and `duration`"
         reached_timeout = False
         if self.is_active:
+            self.client.set_freewheel(in_fw)
             # wait the needed number of blocks
             ttt = time.time()
             CONTINUE = True
@@ -112,10 +130,10 @@ class AudioRecorder(JackClient):
                         break
                 time.sleep(0.001)
                 if self._needed_samples > 0:
-                    CONTINUE = sum(
-                        i.shape[1]
-                        for i in self.recorded) < self._needed_samples
+                    recorded_frames = sum(i.shape[1] for i in self.recorded)
+                    CONTINUE = recorded_frames < self._needed_samples
 
+            self.client.set_freewheel(out_fw)
             self.deactivate()
             try:
                 self.recorded = np.concatenate(self.recorded, axis=1)

@@ -70,10 +70,17 @@ class JackClient:
 
     def is_ready(self):
         """
-        Just check if the current time is > than the time at which the client
-        was ready
+        Check if the client is active,  if it is in condition of processing
+        and, if the current cycle is successive to the one in which the client
+        became in condition of processing.
+
+        The latter condition is needed to guarantee to all the other clients
+        that this function starts returning `True` in the same cycle --
+        otherwise, clients that were processed before of this could see this
+        client not ready, while clients processed after this see it as ready.
         """
-        return self.ready_at < self.client.last_frame_time
+        return self.ready_at < self.client.last_frame_time\
+            and self.ready_at > 0
 
     def __enter__(self):
         return self
@@ -94,13 +101,35 @@ class JackClient:
             self.client.midi_inports.clear()
             self.client.midi_outports.clear()
             self.is_active = False
-            self.ready_at = -1
 
     def close(self):
+        """
+        Deactivate, close and clear memory from this client
+        """
         self.deactivate()
         self.client.close()
+        self.clear()
+
+    def set_freewheel(self, onoff: bool):
+        """
+        Set freewheel on or off, without raising exceptions
+        """
+        try:
+            self.client.set_freewheel(onoff)
+        except jack.JackError:
+            print(f"Cannot set freewheel to {onoff}")
+
+    def clear(self):
+        pass
 
     def activate(self):
+        raise NotImplementedError("Abstract method")
+
+    def wait(self, in_fw=False, out_fw=False):
+        """
+        waits while setting freewheeling mode to `in_fw`
+        it then set freewheeling mode to `out_fw` before exiting
+        """
         raise NotImplementedError("Abstract method")
 
 

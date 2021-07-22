@@ -119,7 +119,7 @@ class AudioRecorder(JackClient):
         assert timeout is not None or self._needed_samples > 0, "Please, provide one between`timeout` and `duration`"
         reached_timeout = False
         if self.is_active:
-            self.client.set_freewheel(in_fw)
+            self.set_freewheel(in_fw)
             # wait the needed number of blocks
             ttt = time.time()
             CONTINUE = True
@@ -133,7 +133,7 @@ class AudioRecorder(JackClient):
                     recorded_frames = sum(i.shape[1] for i in self.recorded)
                     CONTINUE = recorded_frames < self._needed_samples
 
-            self.client.set_freewheel(out_fw)
+            self.set_freewheel(out_fw)
             self.deactivate()
             try:
                 self.recorded = np.concatenate(self.recorded, axis=1)

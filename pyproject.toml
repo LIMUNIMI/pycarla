@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pycarla"
-version = "0.3.1"
+version = "0.3.2"
 description = "Use VST/LV2/etc. plugins with realtime abilities in Python"
 authors = ["Federico Simonetta <federico.simonetta@unimi.it>"]
 license = "GPL-3.0-only"

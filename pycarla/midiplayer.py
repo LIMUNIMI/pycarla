@@ -52,9 +52,9 @@ class MIDIPlayer(JackClient):
         it then set freewheeling mode to `out_fw` before exiting
         """
         if hasattr(self, 'end_midiplayer'):
-            self.client.set_freewheel(in_fw)
+            self.set_freewheel(in_fw)
             self.end_midiplayer.wait()
-            self.client.set_freewheel(out_fw)
+            self.set_freewheel(out_fw)
         self.deactivate()
 
     def clear(self):

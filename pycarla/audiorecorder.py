@@ -21,7 +21,6 @@ class AudioRecorder(JackClient):
         ``Carla.start`` already does that!
         """
         super().__init__("AudioRecorder")
-        self.ready = threading.Event()
 
     def activate(self):
         """
@@ -58,7 +57,7 @@ class AudioRecorder(JackClient):
         constructs the recorded array in `self.recorded`
 
         `condition` is a function checked in the recording callback. If
-        `condition` is False, blocks are discarded.
+        `condition()` is False, blocks are discarded.
 
         This function is compatible with Jack freewheeling mode to record
         offline sessions.
@@ -71,16 +70,13 @@ class AudioRecorder(JackClient):
         def callback(frames):
             channels = [i.get_array() for i in self.client.inports]
             if len(channels) == self.channels:
-                if not self.ready.is_set():
+                if not self.is_ready():
                     # let other clients know that this is ready
-                    self.ready.set()
+                    print(self.client.name + " ready!")
+                    self.ready_at = self.client.last_frame_time
                 elif condition():
-                    # start only if also other clients are ready
-                    # and at the next cycle
-                    if not self.started:
-                        self.started = True
-                    else:
-                        self.recorded.append(np.stack(channels))
+                    # start only if other clients are ready too
+                    self.recorded.append(np.stack(channels))
 
         if duration is not None:
             self._needed_samples = int(duration * self.client.samplerate)

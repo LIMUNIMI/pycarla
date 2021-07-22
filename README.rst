@@ -29,10 +29,18 @@ virtual instruments thanks to the excellent Carla:
 TODO
 ----
 
+For sure
+~~~~~~~~
+
 #. Add single function to synthesize midi file
 #. Add single function to batch-synthesize midi files
-#. Use Carla python code to control Carla host
+#. Make synchronization handling xruns (edit `is_ready`)
 #. Update Carla
+
+Maybe
+~~~~~
+
+#. Use Carla python code to control Carla host
 #. Support LADISH sessions for automatically starting LinuxSampler if needed
 #. Installation scripts for windows and mac
 

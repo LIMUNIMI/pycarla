@@ -24,7 +24,6 @@ class MIDIPlayer(JackClient):
         For now, only one Carla instance should be active.
         """
         super().__init__("MIDIPlayer")
-        self.ready = threading.Event()
 
     def activate(self):
         """
@@ -97,15 +96,12 @@ class MIDIPlayer(JackClient):
             if self.is_active:
                 global offset, msg
                 for port in self.client.midi_outports:
-                    if not self.ready.is_set():
+                    if not self.is_ready():
+                        print(self.client.name + " ready!")
                         # let other clients know that this is ready
-                        self.ready.set()
+                        self.ready_at = self.client.last_frame_time
                     elif condition():
-                        # start only if also other clients are ready
-                        # and at the next cycle
-                        if not self.started:
-                            self.started = True
-                            break
+                        # start only if other clients are ready too
                         port.clear_buffer()
                         while True:
 

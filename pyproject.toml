@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "pycarla"
-version = "0.3.0"
+version = "0.3.0-rc1"
 description = "Use VST/LV2/etc. plugins with realtime abilities in Python"
 authors = ["Federico Simonetta <federico.simonetta@unimi.it>"]
 license = "GPL-3.0-only"
 readme = "README.rst"
 homepage = "https://pycarla.readthedocs.org"
 documentation = "https://pycarla.readthedocs.org"
-repository = "https://gitlab.di.unimi.it/federicosimonetta/pycarla/"
+repository = "https://github.com/00sapo/pycarla"
 classifiers = [
     "Topic :: Multimedia :: Sound/Audio",
     "Topic :: Multimedia :: Sound/Audio :: MIDI",
@@ -27,7 +27,6 @@ numpy = "^1.19.0"
 pysoundfile = "^0.9.0"
 PyQt5 = "^5.15.2"
 mido = "^1.2.9"
-python-rtmidi = "^1.4.6"
 psutil = "^5.8.0"
 
 [tool.poetry.dev-dependencies]

@@ -66,6 +66,14 @@ class JackClient:
     def __init__(self, name):
         self.client = jack.Client(name)
         self.is_active = False
+        self.ready_at = -1
+
+    def is_ready(self):
+        """
+        Just check if the current time is > than the time at which the client
+        was ready
+        """
+        return self.ready_at < self.client.last_frame_time
 
     def __enter__(self):
         return self
@@ -86,6 +94,7 @@ class JackClient:
             self.client.midi_inports.clear()
             self.client.midi_outports.clear()
             self.is_active = False
+            self.ready_at = -1
 
     def close(self):
         self.deactivate()

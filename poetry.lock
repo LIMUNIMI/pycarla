@@ -251,14 +251,6 @@ cffi = ">=0.6"
 numpy = ["numpy"]
 
 [[package]]
-name = "python-rtmidi"
-version = "1.4.7"
-description = "A Python binding for the RtMidi C++ library implemented using Cython."
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "six"
 version = "1.15.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -293,7 +285,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "8f6b3250ba2fedbd39312fe6675c18922e5a704f7282a4702f83a9428fe507b2"
+content-hash = "17ec6aa4f40f1fec24cd8446bb9d2ff64775c5a9cb5bb7ce9cf4c05425f4f7d8"
 
 [metadata.files]
 appnope = [
@@ -516,20 +508,6 @@ pysoundfile = [
     {file = "PySoundFile-0.9.0.post1-py2.py3.cp26.cp27.cp32.cp33.cp34.cp35.cp36.pp27.pp32.pp33-none-win32.whl", hash = "sha256:c5c5cc8e5f3793a4b9f405c0c77e116e859ac16e065bb6b7f78f2a59484fd7a8"},
     {file = "PySoundFile-0.9.0.post1-py2.py3.cp26.cp27.cp32.cp33.cp34.cp35.cp36.pp27.pp32.pp33-none-win_amd64.whl", hash = "sha256:d92afd505d395523200d5b7f217e409bae4639c90cc61e90832a57a5a0fb484a"},
     {file = "PySoundFile-0.9.0.post1.tar.gz", hash = "sha256:43dd46a2afc0484c26930a7e59eef9365cee81bce7a4aadc5699f788f60d32c3"},
-]
-python-rtmidi = [
-    {file = "python-rtmidi-1.4.7.tar.gz", hash = "sha256:d7dbc2b174b09015dfbee449a672a072aa72b367be40b13e04ee35a2e2e399e3"},
-    {file = "python_rtmidi-1.4.7-cp27-cp27m-win32.whl", hash = "sha256:b3cc68264297c9ef4e3d02a45a698c4ca88d4ad1415d009fbf740e4a5ff0bbdb"},
-    {file = "python_rtmidi-1.4.7-cp36-cp36m-macosx_10_6_intel.whl", hash = "sha256:ac61260bd0d63c9bde5b5c9f3585f0fffbca427cc381a99a3cdbb9a5503f48d0"},
-    {file = "python_rtmidi-1.4.7-cp36-cp36m-win32.whl", hash = "sha256:18f1d2873f9514fd3f2de3ca9a1722c470fad0505f79738d03ee1d13ec3a846c"},
-    {file = "python_rtmidi-1.4.7-cp36-cp36m-win_amd64.whl", hash = "sha256:2a2bf0a9526fadbe4de8e438899f0932e497b03f0b549eaf329cb05217b76cfa"},
-    {file = "python_rtmidi-1.4.7-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:de321ee7c68485563a0777b72ea9db5fc8bee6d413ddc125dc881e904bf9c602"},
-    {file = "python_rtmidi-1.4.7-cp37-cp37m-win32.whl", hash = "sha256:fd57b90b28728b6781fdbac78f71b2538b127db5d0fd8aa9304efc7b58daf994"},
-    {file = "python_rtmidi-1.4.7-cp37-cp37m-win_amd64.whl", hash = "sha256:179b2acaa3b2498f71633988799fc392a77bfe983a66b94f70bd35615c94fa33"},
-    {file = "python_rtmidi-1.4.7-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:266ad15fbd97713d4bef07a31ff72ff13cc8cdecc9f4518d2537b01d3f53e47d"},
-    {file = "python_rtmidi-1.4.7-cp38-cp38-win32.whl", hash = "sha256:d1288a0faf12735afd842edba2362ec696f56b4b86917fa4e3113aee3976c84d"},
-    {file = "python_rtmidi-1.4.7-cp38-cp38-win_amd64.whl", hash = "sha256:96b1ca04b4aea71320d71fae81ab882767bd8d801763a54b20ef7e56d4d39a07"},
-    {file = "python_rtmidi-1.4.7-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:922cdcf677e845750d763c114dd334d8ee54bd89f4729bf02bc6a8d3afe6456d"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},

@@ -159,6 +159,18 @@ class Carla(ExternalProcess):
         # starting Carla
         self.__make_carla_popen(proj_path)
 
+        self.client = jack.Client("pycarla")
+
+        # a simple callback that restart carla if
+        # carla disconnects
+        @self.client.set_process_callback
+        def carla_process(frames):
+            if (self.client.last_frame_time // frames) % 8 == 0:
+                if not self.exists():
+                    print("Carla doesn't exists anymore, restarting it")
+                    self.restart_carla()
+                    self.error = True
+
         # waiting
         start = time.time()
         READY = self.exists()
@@ -175,19 +187,7 @@ class Carla(ExternalProcess):
                 start = time.time()
             time.sleep(0.1)
 
-        self.client = jack.Client("pycarla")
-
-        global carla_unregister_callback
-
-        # a simple callback that restart carla if
-        # carla disconnects
-        @self.client.set_process_callback
-        def carla_process(frames):
-            if (self.client.last_time_frames / frames) % 8 == 0:
-                if not self.exists():
-                    print("Carla doesn't exists anymore, restarting it")
-                    self.restart_carla()
-                    self.error = True
+        # activate AFTER having started the Carla process
         self.client.activate()
 
     def kill_carla(self):

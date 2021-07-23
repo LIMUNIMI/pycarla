@@ -23,8 +23,6 @@ class AudioRecorder(JackClient):
 
         # a simple callback that ends the processing if
         # carla disconnects
-        global recorder_unregister_callback
-
         @self.client.set_client_registration_callback
         def recorder_unregister_callback(name, register):
             if 'carla' in name.lower() and not register:

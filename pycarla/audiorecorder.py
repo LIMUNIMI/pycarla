@@ -1,10 +1,9 @@
 import threading
-import time
 
 import numpy as np
 import soundfile as sf
 
-from .utils import JackClient
+from .generics import JackClient
 
 
 class AudioRecorder(JackClient):

@@ -5,17 +5,18 @@ import platform
 import random
 import shutil
 import signal
-import subprocess
 import sys
 import tarfile
 import time
 import urllib.request
 
+import jack
 import mido
 
 import psutil
 from .jackserver import JackServer
-from .utils import ExternalProcess, FakeProcess, progressbar, kill_psutil_process
+from .generics import ExternalProcess, FakeProcess
+from .utils import progressbar, kill_psutil_process
 
 version = "2.1"
 

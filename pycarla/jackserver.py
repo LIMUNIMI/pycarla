@@ -1,10 +1,10 @@
-from typing import List
 import shutil
 import time
 
 import jack
 
-from .utils import ExternalProcess, Popen, find_procs_by_name, kill_psutil_process
+from .generics import ExternalProcess
+from .utils import Popen, find_procs_by_name, kill_psutil_process
 
 
 class JackServer(ExternalProcess):

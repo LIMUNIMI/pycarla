@@ -30,7 +30,6 @@ class JackServer(ExternalProcess):
         Starts the server if not already started
         """
         try:
-            self.connect()
             self.process = find_procs_by_name('jackd')[0]
         except (IndexError, jack.JackOpenError) as e:
             print("Jack server is not running, starting it!")
@@ -39,13 +38,6 @@ class JackServer(ExternalProcess):
             else:
                 raise e
             time.sleep(1)
-            self.connect()
-
-    def connect(self):
-        if not hasattr(self, 'client'):
-            self.client = jack.Client('pycarla')
-        if not hasattr(self, 'client'):
-            print("Cannot connect to Jack server!")
 
     def restart(self):
         """
@@ -55,10 +47,6 @@ class JackServer(ExternalProcess):
         self.wait()
         self.start()
 
-    def get_ports(self) -> List[str]:
-        return [port.name for port in self.client.get_ports()]
-
     def kill(self):
-        self.client.close()
         kill_psutil_process(self.process)
         super().kill()

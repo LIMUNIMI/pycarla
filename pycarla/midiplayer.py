@@ -20,6 +20,17 @@ class MIDIPlayer(JackClient):
         For now, only one Carla instance should be active.
         """
         super().__init__("MIDIPlayer")
+        # a simple callback that ends the processing if
+        # carla disconnects
+        global player_unregister_callback
+
+        @self.client.set_client_registration_callback
+        def player_unregister_callback(name, register):
+            if 'carla' in name.lower() and not register:
+                # this check works for both `pycarla` and `Carla-something`
+                print("Carla disconnected: disconnecting " + self.client.name)
+                self.end_wait.set()
+                self.error = True
 
     def activate(self):
         """

@@ -1,3 +1,4 @@
+from typing import List
 import argparse
 import fnmatch
 import os
@@ -56,13 +57,12 @@ Carla by yourself and put the `Carla` command in your path.")
 
 
 def run_carla():
-    server = JackServer(['-R', '-d', 'alsa'])
-    carla = Carla("", server, min_wait=0, nogui=False)
+    carla = Carla("", ['-R', '-d', 'alsa'], min_wait=0, nogui=False)
     carla.start()
     carla.process.wait()
     try:
         carla.kill()
-    except:
+    except Exception:
         print("Processes already closed!")
 
 
@@ -83,26 +83,32 @@ else:
 class Carla(ExternalProcess):
     def __init__(self,
                  proj_path: str,
-                 server: JackServer,
+                 server_options: List[str] = [],
                  min_wait: float = 0,
                  nogui: bool = True):
         """
         Creates a Carla object, ready to be started.
 
-        `min_wait` is the minimum amount of seconds waited when starting Carla;
-        it is useful if your preset takes a bit to be loaded.
+        * `server_options` are the the options that will be used to start
+        `jackd`; the format is similar to `subprocess.Popen` -- e.g. ``['-d',
+        'alsa', '-r', '48000']
 
-        `nogui` is False if you want to use the gui
+        * `min_wait` is the minimum amount of seconds waited when starting
+        Carla; it is useful if your preset takes a bit to be loaded.
+
+        * `nogui` is False if you want to use the gui
         """
         super().__init__()
 
         self.proj_path = proj_path
-        self.server = server
+        self.server = JackServer(server_options)
         self.min_wait = min_wait
         if nogui:
             self.nogui = "-n"
         else:
             self.nogui = ""
+
+        self.error = False
 
         if sys.platform == 'linux':
             if not os.path.exists(CARLA_PATH):
@@ -113,15 +119,6 @@ class Carla(ExternalProcess):
                 raise Warning(
                     "Carla seems not to be installed. Download it and put the \
 ``Carla`` command in your path.")
-
-        global carla_unregister_callback
-
-        # a simple callback that restart carla if
-        # carla disconnects
-        @self.server.client.set_client_registration_callback
-        def carla_unregister_callback(name, register):
-            if not self.exists():
-                self.restart_carla()
 
     def restart_carla(self):
         """
@@ -143,6 +140,9 @@ class Carla(ExternalProcess):
         self.process = psutil.Popen(
             [CARLA_PATH + "Carla", self.nogui, proj_path],
             preexec_fn=os.setsid)
+
+    def get_ports(self):
+        return [port.name for port in self.client.get_ports()]
 
     def start(self):
         """
@@ -175,10 +175,27 @@ class Carla(ExternalProcess):
                 start = time.time()
             time.sleep(0.1)
 
+        self.client = jack.Client("pycarla")
+
+        global carla_unregister_callback
+
+        # a simple callback that restart carla if
+        # carla disconnects
+        @self.client.set_process_callback
+        def carla_process(frames):
+            if (self.client.last_time_frames / frames) % 8 == 0:
+                if not self.exists():
+                    print("Carla doesn't exists anymore, restarting it")
+                    self.restart_carla()
+                    self.error = True
+        self.client.activate()
+
     def kill_carla(self):
         """
         kill carla, but not the server
         """
+        self.client.deactivate()
+        self.client.close()
         kill_psutil_process(self.process)
 
     def kill(self):
@@ -204,7 +221,7 @@ class Carla(ExternalProcess):
         bool: True if all ports in `ports` exist and the Carla process is
             running, false otherwise
         """
-        real_ports = self.server.get_ports()
+        real_ports = self.get_ports()
         for port in ports:
             if not fnmatch.filter(real_ports, port):
                 return False

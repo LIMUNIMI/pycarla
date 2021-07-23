@@ -109,9 +109,9 @@ class AudioRecorder(JackClient):
                     # start only if other clients are ready too
                     self.recorded.append(np.stack(channels))
                     if self._needed_samples > 0:
-                        recorded_frames = sum(i.shape[1]
-                                              for i in self.recorded)
-                        if recorded_frames < self._needed_samples:
+                        recorded_frames = self.client.last_frame_time -\
+                            self.ready_at
+                        if recorded_frames > self._needed_samples:
                             self.end_wait.set()
 
         self.activate()

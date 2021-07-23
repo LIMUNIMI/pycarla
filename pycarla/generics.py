@@ -45,6 +45,7 @@ class JackClient:
             self.client.midi_inports.clear()
             self.client.midi_outports.clear()
             self.is_active = False
+            print(self.client.name + " deactivated!")
 
     def close(self):
         """
@@ -77,13 +78,13 @@ class JackClient:
         if `timeout` is a number, it waits but exits if `timeout` is reached
         and returns False in that case, otherwise, True
         """
-        out = True
-        if hasattr(self, 'end_wait'):
+        success = True
+        if not self.end_wait.is_set():
             self.set_freewheel(in_fw)
-            out = self.end_wait.wait(timeout)
+            success = self.end_wait.wait(timeout)
             self.set_freewheel(out_fw)
         self.deactivate()
-        return out and self.error
+        return success and not self.error
 
 
 class FakeProcess:

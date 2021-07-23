@@ -12,13 +12,17 @@ Initialization
 
 .. code-block:: python
 
-   from pycarla import Carla, MIDIPlayer, AudioRecorder, JackServer, get_smf_duration
-   server = JackServer(['-R', '-d', 'alsa'])
-   carla = Carla("carla_project.carxp", server, min_wait=4)
+   from pycarla import Carla, MIDIPlayer, AudioRecorder, get_smf_duration
+   carla = Carla("carla_project.carxp", ['-R', '-d', 'alsa'], min_wait=4)
    carla.start()
 
    player = MIDIPlayer()
    recorder = AudioRecorder()
+
+   # or
+   with MIDIPlayer() as player, AudioRecorder() as recorder:
+       # [...]
+       pass
 
 Playing and recording one note
 ``````````````````````````````

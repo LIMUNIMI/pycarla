@@ -1,10 +1,7 @@
-import threading
 import subprocess
 import sys
-import time
 import os
 
-import jack
 import psutil
 import mido
 

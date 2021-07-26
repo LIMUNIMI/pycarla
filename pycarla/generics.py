@@ -12,6 +12,16 @@ class JackClient:
         self.end_wait = threading.Event()
         self.error = False
 
+        # a simple callback that ends the processing if
+        # carla disconnects
+        @self.client.set_client_registration_callback
+        def client_unregister_callback(name, register):
+            if 'carla' in name.lower() and not register:
+                # this check works for both `pycarla` and `Carla-something`
+                print("Carla disconnected: disconnecting " + self.client.name)
+                self.end_wait.set()
+                self.error = True
+
     def is_ready(self):
         """
         Check if the client is active,  if it is in condition of processing
@@ -72,8 +82,9 @@ class JackClient:
 
     def wait(self, timeout=None, in_fw=False, out_fw=False):
         """
-        waits while setting freewheeling mode to `in_fw`
-        it then set freewheeling mode to `out_fw` before exiting
+        Waits while setting freewheeling mode to `in_fw`
+        It then always set freewheeling mode to `out_fw` before exiting. This
+        object doesn't raise exceptions if freewheeling is already set.
 
         if `timeout` is a number, it waits but exits if `timeout` is reached
         and returns False in that case, otherwise, True
@@ -82,7 +93,7 @@ class JackClient:
         if not self.end_wait.is_set():
             self.set_freewheel(in_fw)
             success = self.end_wait.wait(timeout)
-            self.set_freewheel(out_fw)
+        self.set_freewheel(out_fw)
         self.deactivate()
         return success and not self.error
 

@@ -171,7 +171,7 @@ class Carla(ExternalProcess):
                     self.restart_carla()
                     self.error = True
 
-        # waiting
+        # waiting until Carla is ready
         start = time.time()
         READY = self.exists()
         while True:
@@ -196,6 +196,7 @@ class Carla(ExternalProcess):
         """
         self.client.deactivate()
         self.client.close()
+        del self.client
         kill_psutil_process(self.process)
 
     def kill(self):
@@ -221,7 +222,11 @@ class Carla(ExternalProcess):
         bool: True if all ports in `ports` exist and the Carla process is
             running, false otherwise
         """
-        real_ports = self.get_ports()
+        try:
+            real_ports = self.get_ports()
+        except Exception:
+            return False
+
         for port in ports:
             if not fnmatch.filter(real_ports, port):
                 return False
@@ -231,6 +236,7 @@ class Carla(ExternalProcess):
 
         if self.process.status() == 'zombie':
             print("Warning! Carla is Zombie!")
+            del self.process
             self.process = FakeProcess()
             return False
 

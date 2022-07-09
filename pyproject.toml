@@ -31,4 +31,4 @@ psutil = "^5.8.0"
 
 [tool.poetry.dev-dependencies]
 ipdb = "^0.13.2"
-ipython = "^7.15.0"
+ipython = "^7.16.3"

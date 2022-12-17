@@ -58,4 +58,4 @@ Used plugins are:
 
 .. _SalamanderGrandPianoV3: http://freepats.zenvoid.org/Piano/SalamanderGrandPiano/SalamanderGrandPianoV3+20161209_48khz24bit.tar.xz
 
-#. Run ``poetry run -m pycarla <a_midi_file.mid>`` to do a little test
+#. Run ``poetry run python -m pycarla <a_midi_file.mid>`` to do a little test

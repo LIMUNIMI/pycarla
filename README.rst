@@ -29,7 +29,7 @@ virtual instruments thanks to the excellent Carla:
 HELP
 ----
 
-If you need help, please [open an issue](https://github.com/LIMUNIMI/pycarla/issues/new/choose) or [create a discussion](https://github.com/LIMUNIMI/pycarla/discussions/new?category=q-a).
+If you need help, please `open an issue <https://github.com/LIMUNIMI/pycarla/issues/new/choose>`_ or `create a discussion <https://github.com/LIMUNIMI/pycarla/discussions/new?category=q-a>`_.
 
 TODO
 ----

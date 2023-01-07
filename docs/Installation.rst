@@ -38,11 +38,15 @@ to download the correct version of Carla.
 If you're not in Linux, pre-built binaries for major OS available at
 https://github.com/falkTX/Carla/releases/latest
 
-**N.B. Configure Carla in ``patchbay`` mode (if you cannot use GUI, set ``ProcessMode=3`` into ``~/.config/falkTX/Carla2.conf``)**
+**N.B. Configure Carla in `patchbay` mode (if you cannot use GUI, set `ProcessMode=3` into `~/.config/falkTX/Carla2.conf`)**
+
+To set patchbay mode in the GUI: `settings` -> `Engine` -> `Process mode` -> `Patchbay` -> `Ok`
 
 
 Development setup
 -----------------
+
+**The next steps are only needed for contributing to this project. Do not follow them if you only want to use `pycarla`**
 
 #. Install poetry: ``curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python``
 #. Enter root directory of this project
@@ -51,9 +55,9 @@ Development setup
    Note that you can use the default ones, provided you have the same plugins
    available, otherwise you have to delete the default project files. 
 
-Used plugins are:
+Tested plugins are:
     * Pianoteq
-    * SalamanderGrandPianoV3_ uncompressed in ``~/salamander/``
+    * SalamanderGrandPianoV3_
     * Calf Reverb
 
 .. _SalamanderGrandPianoV3: http://freepats.zenvoid.org/Piano/SalamanderGrandPiano/SalamanderGrandPianoV3+20161209_48khz24bit.tar.xz
